@@ -90,7 +90,7 @@ class IndicatorRegistry:
             Sorted list of registered indicator names
 
         """
-        return sorted(self._indicators.keys())
+        return sorted(str(key) for key in self._indicators.keys())
 
     @property
     def sorted_indicators(self) -> dict[str, type[BaseIndicator]]:
