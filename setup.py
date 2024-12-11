@@ -1,0 +1,24 @@
+from setuptools import find_packages, setup
+
+setup(
+    name="positionbt",
+    version="1.0.0",
+    author="Xuan Ronaldo",
+    author_email="xuanronaldo@outlook.com",
+    description="PositionBT is a simple, fast, and customizable backtesting framework "
+    + "that directly evaluates trading strategies through position data (ranging from -1 to 1).",
+    url="https://github.com/xuanronaldo/positionbt",
+    packages=find_packages(where="src"),
+    package_dir={"": "src"},
+    classifiers=[
+        "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+    ],
+    python_requires=">=3.7",
+    install_requires=[
+        "polars>=0.20.0",
+        "pandas>=2.0.0",
+        "plotly>=5.18.0",
+    ],
+)

@@ -1,0 +1,7 @@
+{
+    "python.envFile": "${workspaceFolder}/.vscode/dev.env",
+    "[python]": {
+      "editor.defaultFormatter": "charliermarsh.ruff",
+      "editor.formatOnSave": true
+    }
+}

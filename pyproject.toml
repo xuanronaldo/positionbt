@@ -1,0 +1,37 @@
+[tool.ruff]
+# Line length configuration
+line-length = 100
+
+# Target Python version
+target-version = "py39"
+
+# Exclude files and directories
+exclude = [
+    ".git",
+    ".ruff_cache",
+    "__pycache__",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors (PEP 8 style guide)
+    "F",   # pyflakes (logical errors)
+    "I",   # isort (import sorting)
+    "UP",  # pyupgrade (Python upgrade suggestions)
+    "RUF", # Ruff-specific rules
+]
+
+# Auto-fix behavior
+fixable = ["ALL"]
+
+# Sort imports
+[tool.ruff.lint.isort]
+known-first-party = ["positionbt"]
+combine-as-imports = true
+split-on-trailing-comma = true
+
+# Formatting settings (similar to black)
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto" 
