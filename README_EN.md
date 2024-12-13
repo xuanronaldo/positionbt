@@ -193,8 +193,13 @@ from positionbt import (
 class DrawdownFigure(BaseFigure):
     """Drawdown visualization figure"""
 
-    name = "drawdown"  # Unique identifier for the figure
-    title = "Strategy Drawdown"  # Display title for the figure
+        @property
+    def name(self) -> str:
+        return "drawdown"
+
+    @property
+    def title(self) -> str:
+        return "Strategy Drawdown"
 
     def create(self) -> go.Figure:
         """Create drawdown figure
@@ -375,12 +380,18 @@ Base class for indicator calculation, used for custom performance indicators.
 #### BaseFigure
 Base class for visualization charts, used for custom chart types.
 
-**Required Attributes:**
-- `name`: Unique chart identifier
-- `title`: Chart display title
-
 **Required Methods:**
+- `name(self) -> str`: Return chart unique identifier (requires @property decorator)
+- `title(self) -> str`: Return chart display title (requires @property decorator)
 - `create(self) -> go.Figure`: Create and return Plotly figure object
+
+**Initialization Parameters:**
+- `results`: BacktestResult object containing backtest data
+
+**Available Attributes:**
+- `results`: Backtest result object
+- `funding_curve`: NAV curve data
+- `_fig`: Base figure object (with default layout settings)
 
 ### Registries
 

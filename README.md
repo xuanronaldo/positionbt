@@ -195,8 +195,13 @@ from positionbt import (
 class DrawdownFigure(BaseFigure):
     """Drawdown visualization figure"""
 
-    name = "drawdown"  # Unique identifier for the figure
-    title = "Strategy Drawdown"  # Display title for the figure
+    @property
+    def name(self) -> str:
+        return "drawdown"
+
+    @property
+    def title(self) -> str:
+        return "Strategy Drawdown"
 
     def create(self) -> go.Figure:
         """Create drawdown figure
@@ -378,12 +383,18 @@ BacktestVisualizer(
 #### BaseFigure
 可视化图表的基类，用于自定义新的图表类型。
 
-**必须实现的属性：**
-- `name`: 图表唯一标识符
-- `title`: 图表显示标题
-
 **必须实现的方法：**
+- `name(self) -> str`: 返回图表唯一标识符（需使用 @property 装饰器）
+- `title(self) -> str`: 返回图表显示标题（需使用 @property 装饰器）
 - `create(self) -> go.Figure`: 创建并返回 Plotly 图表对象
+
+**初始化参数：**
+- `results`: BacktestResult 对象，包含回测结果数据
+
+**可用属性：**
+- `results`: 回测结果对象
+- `funding_curve`: 净值曲线数据
+- `_fig`: 基础图表对象（包含默认布局设置）
 
 ### 注册器
 

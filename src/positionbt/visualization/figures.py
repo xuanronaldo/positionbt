@@ -7,8 +7,13 @@ from positionbt.visualization.base import BaseFigure
 class FundingCurveFigure(BaseFigure):
     """Funding curve visualization figure"""
 
-    name = "funding_curve"  # Unique identifier for the figure
-    title = "Funding Curve"  # Display title for the figure
+    @property
+    def name(self) -> str:
+        return "funding_curve"
+
+    @property
+    def title(self) -> str:
+        return "Funding Curve"
 
     def create(self) -> go.Figure:
         """Create funding curve figure
@@ -107,8 +112,13 @@ class FundingCurveFigure(BaseFigure):
 class MonthlyReturnsFigure(BaseFigure):
     """Monthly returns distribution figure"""
 
-    name = "monthly_returns"  # Unique identifier for the figure
-    title = "Monthly Returns Distribution"  # Display title for the figure
+    @property
+    def name(self) -> str:
+        return "monthly_returns"
+
+    @property
+    def title(self) -> str:
+        return "Monthly Returns Distribution"
 
     def create(self) -> go.Figure:
         """Create monthly returns distribution figure

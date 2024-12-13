@@ -8,8 +8,15 @@ from positionbt.models.models import BacktestResult
 class BaseFigure(ABC):
     """Base class for visualization figures"""
 
-    name: str = ""  # Unique identifier for the figure
-    title: str = ""  # Display title for the figure
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        pass
+
+    @property
+    @abstractmethod
+    def title(self) -> str:
+        pass
 
     def __init__(self, results: BacktestResult):
         """Initialize base figure
@@ -45,6 +52,7 @@ class BaseFigure(ABC):
         fig = go.Figure()
         fig.update_layout(
             title=self.title,
+            template="plotly_white",
             showlegend=True,
             hovermode="x unified",
             plot_bgcolor="white",

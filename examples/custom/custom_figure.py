@@ -13,8 +13,13 @@ from positionbt import (
 class DrawdownFigure(BaseFigure):
     """Drawdown visualization figure"""
 
-    name = "drawdown"  # Unique identifier for the figure
-    title = "Strategy Drawdown"  # Display title for the figure
+    @property
+    def name(self) -> str:
+        return "drawdown"
+
+    @property
+    def title(self) -> str:
+        return "Strategy Drawdown"
 
     def create(self) -> go.Figure:
         """Create drawdown figure
