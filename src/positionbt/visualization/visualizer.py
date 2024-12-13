@@ -70,7 +70,7 @@ class BacktestVisualizer:
             figure_html = f"""
             <div class="chart">
                 <h3>{figure.title}</h3>
-                {figure.create().to_html(full_html=False, include_plotlyjs=False)}
+                {figure.create().to_html(full_html=False, include_plotlyjs=True)}
             </div>
             """
             figures_html[name] = figure_html
