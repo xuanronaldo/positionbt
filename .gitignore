@@ -168,3 +168,5 @@ output
 output/
 
 .ruff_cache/
+
+src/benchmark

@@ -156,10 +156,7 @@ def validate_time_alignment(close_df: pl.DataFrame, position_df: pl.DataFrame) -
         ValidationError: If timestamps are not aligned
 
     """
-    close_times = set(close_df["time"])
-    position_times = set(position_df["time"])
-
-    if close_times != position_times:
+    if not close_df["time"].equals(position_df["time"]):
         raise ValidationError("Close and position data must have identical timestamps")
 
 
