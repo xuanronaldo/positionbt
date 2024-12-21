@@ -23,9 +23,31 @@ PositionBT is a Python library focused on position-based strategy backtesting. T
   - Rich visualization options: supports custom chart types, enabling multi-dimensional analysis displays such as strategy performance curves, drawdown analysis, and position distribution.
   - Open interface design: facilitates user extension and integration of their own analysis tools to create personalized backtesting analysis workflows.
 
-## Backtesting Speed
+## Performance Test
 
-Taking the Bitcoin (BTC) closing price dataset in the `data` directory as an example. This dataset contains 15-minute level data from August 17, 2017, to December 11, 2024, with a total of 256,058 records. Running a simple "buy and hold" strategy on an M4 chip Mac Mini, the backtest calculation takes only 0.13 seconds, generating an interactive HTML report takes about 0.896 seconds, and the average backtesting time per 100,000 rows of data is just 0.051 seconds, demonstrating excellent performance.
+To demonstrate the performance of PositionBT, we conducted tests using a real-world large-scale dataset:
+
+### Test Dataset
+
+* File: data/btc_ohlcv_1m.parquet
+* Time Range: August 17, 2017 to December 22, 2024
+* Data Type: 1-minute candlestick data
+* Data Size: 2,682,218 records
+
+### Test Environment
+
+* Hardware: Mac Mini (M4 chip)
+* Memory: 16 GB
+* Storage: 256 GB
+
+### Performance Results
+
+* Backtest Duration: 0.14 seconds
+* Data Processing Speed: 19,158,700 records/second
+
+These test results demonstrate that PositionBT can efficiently process large-scale historical data, providing rapid feedback for strategy validation. Even when handling millions of data points, its performance remains stable.
+
+> Note: Test results may vary depending on hardware configuration and data characteristics.
 
 ## Installation
 
