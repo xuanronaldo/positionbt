@@ -10,6 +10,9 @@ setup(
     url="https://github.com/xuanronaldo/positionbt",
     packages=find_packages(where="src"),
     package_dir={"": "src"},
+    package_data={
+        "positionbt.visualization": ["templates/*.html"],
+    },
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
