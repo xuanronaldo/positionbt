@@ -21,8 +21,8 @@ def run_ma_strategy(fast_window: int, slow_window: int) -> dict:
 
     backtest_result.print()
 
-    visualizer = BacktestVisualizer(backtest_result, backtester.params)
-    visualizer.show_in_browser()
+    visualizer = BacktestVisualizer()
+    visualizer.show_in_browser(backtest_result, backtester.params, notes="MA Strategy")
 
 
 run_ma_strategy(60, 310)

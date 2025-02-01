@@ -24,5 +24,5 @@ backtest_result = backtester.run(position_df)
 backtest_result.print()
 
 # Create visualizer and show results in browser
-visualizer = BacktestVisualizer(backtest_result, backtester.params)
-visualizer.show_in_browser()
+visualizer = BacktestVisualizer()
+visualizer.show_in_browser(backtest_result, backtester.params)

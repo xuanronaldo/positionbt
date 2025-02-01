@@ -90,8 +90,8 @@ backtest_result = backtester.run(position_df)
 backtest_result.print()
 
 # Create visualizer and show results in browser
-visualizer = BacktestVisualizer(backtest_result, backtester.params)
-visualizer.show_in_browser()
+visualizer = BacktestVisualizer()
+visualizer.show_in_browser(backtest_result, backtester.params)
 
 ```
 
@@ -281,8 +281,8 @@ backtester = PositionBacktester(
 backtest_result = backtester.run(position_df)
 
 # Create visualizer and show results in browser
-visualizer = BacktestVisualizer(backtest_result, backtester.params, figures=["drawdown"])
-visualizer.show_in_browser()
+visualizer = BacktestVisualizer(figures=["drawdown"])
+visualizer.show_in_browser(backtest_result, backtester.params)
 ```
 
 #### 结果
@@ -369,24 +369,16 @@ PositionBacktester(
 
 ```python
 BacktestVisualizer(
-    results: BacktestResult,
-    params: dict,
-    template_path: Optional[Path] = None,
-    figures: Optional[list[str]] = None,
-    notes: Optional[str] = None
+    figures: Optional[list[str]] = None
 )
 ```
 
 **参数说明：**
-- `results`: 回测结果对象
-- `params`: 回测参数字典
-- `template_path`: 自定义模板路径（可选）
 - `figures`: 需要展示的图表列表（可选）
-- `notes`: 报告备注信息（可选）
 
 **主要方法：**
-- `show_in_browser()`: 在浏览器中展示回测报告
-- `generate_html_report(output_path: str)`: 生成 HTML 格式的回测报告
+- `show_in_browser(results: BacktestResult, params: dict, notes: Optional[str] = None)`: 在浏览器中展示回测报告
+- `generate_html_report(results: BacktestResult, params: dict, output_path: str, notes: Optional[str] = None)`: 生成 HTML 格式的回测报告
 
 ### 基类
 

@@ -18,45 +18,21 @@ class BacktestVisualizer:
 
     def __init__(
         self,
-        results: BacktestResult,
-        params: dict,
-        template_path: Optional[Path] = None,
         figures: Optional[list[str]] = None,
-        notes: Optional[str] = None,
     ):
         """Initialize visualizer
 
         Args:
-            results: BacktestResult object
-            params: Dictionary of backtest parameters
             template_path: Path to HTML template file
             figures: List of figure names to display. If empty list, no figures will be shown.
                     If None, all registered figures will be shown.
-            notes: Optional notes to display in the report
-
         """
-        self.results = results
-        self.params = params
-        self.notes = notes
-        self._template_path = template_path or (
+        self._template_path = (
             Path(__file__).parent.parent / "visualization" / "templates" / "report_template.html"
         )
+        self.figures_config = figures
 
-        # Initialize figure dictionary
-        self.figures: dict[str, BaseFigure] = {}
-
-        # Add specified figures
-        if figures is not None:  # figures parameter explicitly specified
-            if figures:  # if figures is not an empty list
-                for name in figures:
-                    figure_cls = figure_registry.get(name)
-                    self.figures[name] = figure_cls(results)
-        else:  # figures is None, show all registered figures
-            for name in figure_registry.available_figures:
-                figure_cls = figure_registry.get(name)
-                self.figures[name] = figure_cls(results)
-
-    def _generate_all_figures(self) -> dict[str, str]:
+    def _generate_all_figures(self, results: BacktestResult) -> dict[str, str]:
         """Generate HTML code for all figures
 
         Returns:
@@ -64,6 +40,18 @@ class BacktestVisualizer:
 
         """
         figures_html = {}
+
+        # Initialize figures based on current results
+        self.figures: dict[str, BaseFigure] = {}
+        if self.figures_config is not None:
+            if self.figures_config:
+                for name in self.figures_config:
+                    figure_cls = figure_registry.get(name)
+                    self.figures[name] = figure_cls(results)
+        else:
+            for name in figure_registry.available_figures:
+                figure_cls = figure_registry.get(name)
+                self.figures[name] = figure_cls(results)
 
         # Generate figures
         for name, figure in self.figures.items():
@@ -77,36 +65,25 @@ class BacktestVisualizer:
 
         return figures_html
 
-    def _generate_backtest_params_html(self) -> str:
-        """Generate HTML for backtest parameters
-
-        Returns:
-            HTML string containing formatted backtest parameters
-
-        """
-        params = {
-            "Commission Rate": f"{self.params['commission']:.3%}",
-            "Annual Trading Days": f"{self.params['annual_trading_days']} days",
+    def _generate_backtest_params_html(self, params: dict) -> str:
+        """Generate HTML for backtest parameters"""
+        params_formatted = {
+            "Commission Rate": f"{params['commission']:.3%}",
+            "Annual Trading Days": f"{params['annual_trading_days']} days",
             "Indicators": (
                 "All indicators"
-                if self.params["indicators"] == "all"
-                else ", ".join(self.params["indicators"])
+                if params["indicators"] == "all"
+                else ", ".join(params["indicators"])
             ),
         }
-
         return "\n".join(
             f'<div class="info-item"><span style="color: #666;">{k}:</span> {v}</div>'
-            for k, v in params.items()
+            for k, v in params_formatted.items()
         )
 
-    def _generate_data_info_html(self) -> str:
-        """Generate HTML for data information
-
-        Returns:
-            HTML string containing formatted data information
-
-        """
-        df = self.results.funding_curve
+    def _generate_data_info_html(self, results: BacktestResult) -> str:
+        """Generate HTML for data information"""
+        df = results.funding_curve
         start_date = df.select(pl.col("time").min()).item().strftime("%Y-%m-%d")
         end_date = df.select(pl.col("time").max()).item().strftime("%Y-%m-%d")
         total_days = (
@@ -141,17 +118,10 @@ class BacktestVisualizer:
             for k, v in info.items()
         )
 
-    def _generate_metrics_html(self) -> str:
-        """Generate HTML for metrics
-
-        Returns:
-            HTML string containing formatted metrics
-
-        """
+    def _generate_metrics_html(self, results: BacktestResult) -> str:
+        """Generate HTML for metrics"""
         metrics_html = ""
-
-        # Get formatted metric values from BacktestResult object
-        for key, value in self.results.formatted_indicator_values.items():
+        for key, value in results.formatted_indicator_values.items():
             # Convert underscore-separated keys to title case display names
             display_name = " ".join(word.capitalize() for word in key.split("_"))
 
@@ -164,48 +134,65 @@ class BacktestVisualizer:
 
         return metrics_html
 
-    def _generate_notes_html(self) -> str:
+    def _generate_notes_html(self, notes: Optional[str] = None) -> str:
         """Generate HTML for notes section
 
         Returns:
             HTML string containing formatted notes, or empty string if no notes
 
         """
-        if not self.notes:
+        if not notes:
             return ""
 
         return f"""
         <div class="info-section">
             <h2>Notes</h2>
             <div class="info-content">
-                <div class="info-item">{self.notes}</div>
+                <div class="info-item">{notes}</div>
             </div>
         </div>
         """
 
-    def generate_html_report(self, output_path: str) -> None:
+    def generate_html_report(
+        self,
+        results: BacktestResult,
+        params: dict,
+        output_path: str,
+        notes: Optional[str] = None,
+    ) -> None:
         """Generate HTML backtest report
-
+        
         Args:
-            output_path: Path where the HTML report will be saved
-
+            results: Backtest result data
+            params: Backtest parameters
+            output_path: Output file path
+            notes: Optional notes content
         """
+        # Initialize figures based on current results
+        self.figures: dict[str, BaseFigure] = {}
+        if self.figures_config is not None:
+            if self.figures_config:
+                for name in self.figures_config:
+                    figure_cls = figure_registry.get(name)
+                    self.figures[name] = figure_cls(results)
+        else:
+            for name in figure_registry.available_figures:
+                figure_cls = figure_registry.get(name)
+                self.figures[name] = figure_cls(results)
+
+        # Prepare template variables with current parameters
+        template_vars = {
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "backtest_params_html": self._generate_backtest_params_html(params),
+            "data_info_html": self._generate_data_info_html(results),
+            "metrics_html": self._generate_metrics_html(results),
+            "notes_html": self._generate_notes_html(notes),
+            "figures": self._generate_all_figures(results),
+        }
+
         # Read HTML template
         with open(self._template_path, encoding="utf-8") as f:
             html_template = f.read()
-
-        # Generate all figure HTML code
-        figures_html = self._generate_all_figures()
-
-        # Prepare template variables
-        template_vars = {
-            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "backtest_params_html": self._generate_backtest_params_html(),
-            "data_info_html": self._generate_data_info_html(),
-            "metrics_html": self._generate_metrics_html(),
-            "notes_html": self._generate_notes_html(),
-            "figures": figures_html,
-        }
 
         # Replace template variables
         html_content = html_template
@@ -217,26 +204,34 @@ class BacktestVisualizer:
         # Find and replace figures placeholder
         figures_placeholder = "$figures"
         if figures_placeholder in html_content:
-            figures_section = "\n".join(html for html in figures_html.values())
+            figures_section = "\n".join(
+                html for html in self._generate_all_figures(results).values()
+            )
             html_content = html_content.replace(figures_placeholder, figures_section)
 
         # Save HTML file
         with open(output_path, "w", encoding="utf-8", errors="xmlcharrefreplace") as f:
             f.write(html_content)
 
-    def show_in_browser(self, delay: float = 0.5) -> None:
-        """Display backtest results in browser
-
+    def show_in_browser(
+        self,
+        results: BacktestResult,
+        params: dict,
+        notes: Optional[str] = None,
+        delay: float = 0.5,
+    ) -> None:
+        """Display backtest results in web browser
+        
         Args:
-            delay: Delay in seconds before cleaning up temporary file
-
+            results: Backtest result data
+            params: Backtest parameters
+            notes: Optional notes content
+            delay: Delay time (seconds) before cleaning temp file
         """
-        # Create temporary file
         with tempfile.NamedTemporaryFile(
             mode="w", suffix=".html", encoding="utf-8", delete=False
         ) as tmp_file:
-            # Generate report and write to temporary file
-            self.generate_html_report(tmp_file.name)
+            self.generate_html_report(results, params, tmp_file.name, notes)
             # Get temporary file path
             tmp_path = Path(tmp_file.name)
             # Open file in browser

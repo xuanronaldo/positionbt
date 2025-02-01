@@ -90,8 +90,8 @@ backtest_result = backtester.run(position_df)
 backtest_result.print()
 
 # Create visualizer and show results in browser
-visualizer = BacktestVisualizer(backtest_result, backtester.params)
-visualizer.show_in_browser()
+visualizer = BacktestVisualizer()
+visualizer.show_in_browser(backtest_result, backtester.params)
 ```
 
 #### Results
@@ -279,8 +279,8 @@ backtester = PositionBacktester(
 backtest_result = backtester.run(position_df)
 
 # Create visualizer and show results in browser
-visualizer = BacktestVisualizer(backtest_result, backtester.params, figures=["drawdown"])
-visualizer.show_in_browser()
+visualizer = BacktestVisualizer(figures=["drawdown"])
+visualizer.show_in_browser(backtest_result, backtester.params)
 ```
 
 #### Results
@@ -367,24 +367,16 @@ Backtest result visualizer for generating interactive backtest reports.
 
 ```python
 BacktestVisualizer(
-    results: BacktestResult,
-    params: dict,
-    template_path: Optional[Path] = None,
-    figures: Optional[list[str]] = None,
-    notes: Optional[str] = None
+    figures: Optional[list[str]] = None
 )
 ```
 
 **Parameters:**
-- `results`: Backtest result object
-- `params`: Backtest parameter dictionary
-- `template_path`: Custom template path (optional)
 - `figures`: List of figures to display (optional)
-- `notes`: Report notes (optional)
 
 **Main Methods:**
-- `show_in_browser()`: Show backtest report in browser
-- `generate_html_report(output_path: str)`: Generate HTML format backtest report
+- `show_in_browser(results: BacktestResult, params: dict, notes: Optional[str] = None)`: Show backtest report in browser
+- `generate_html_report(results: BacktestResult, params: dict, output_path: str, notes: Optional[str] = None)`: Generate HTML format backtest report
 
 ### Base Classes
 
