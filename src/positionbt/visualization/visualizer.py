@@ -97,13 +97,13 @@ class BacktestVisualizer:
         if minutes < 60:  # Less than 1 hour
             frequency = f"{minutes:.0f}min"
         elif minutes < 1440:  # Less than 1 day
-            frequency = f"{minutes/60:.1f}h"
+            frequency = f"{minutes / 60:.1f}h"
         elif minutes < 10080:  # Less than 1 week
-            frequency = f"{minutes/1440:.1f}d"
+            frequency = f"{minutes / 1440:.1f}d"
         elif minutes < 43200:  # Less than 1 month
-            frequency = f"{minutes/10080:.1f}w"
+            frequency = f"{minutes / 10080:.1f}w"
         else:  # Greater than or equal to 1 month
-            frequency = f"{minutes/43200:.1f}m"
+            frequency = f"{minutes / 43200:.1f}m"
 
         info = {
             "Start Date": start_date,
@@ -161,7 +161,7 @@ class BacktestVisualizer:
         notes: Optional[str] = None,
     ) -> None:
         """Generate HTML backtest report
-        
+
         Args:
             results: Backtest result data
             params: Backtest parameters
@@ -221,7 +221,7 @@ class BacktestVisualizer:
         delay: float = 0.5,
     ) -> None:
         """Display backtest results in web browser
-        
+
         Args:
             results: Backtest result data
             params: Backtest parameters

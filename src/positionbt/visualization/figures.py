@@ -71,7 +71,7 @@ class FundingCurveFigure(BaseFigure):
             go.Scatter(
                 x=dd_region.get_column("time"),
                 y=dd_region.get_column("funding_curve"),
-                name=f'Max Drawdown Period ({self.results.indicator_values["max_drawdown"]:.1%})',
+                name=f"Max Drawdown Period ({self.results.indicator_values['max_drawdown']:.1%})",
                 line=dict(color="rgba(255,0,0,0.5)"),
                 showlegend=True,
             )
