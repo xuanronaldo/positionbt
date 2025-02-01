@@ -71,7 +71,9 @@ class AnnualReturn(BaseIndicator):
             total_periods = len(cache["merged_df"].get_column("funding_curve"))
             actual_days = total_periods / periods_per_day
 
-            cache["annual_return"] = round(float(((1 + total_return) ** (365 / actual_days)) - 1), 3)
+            cache["annual_return"] = round(
+                float(((1 + total_return) ** (365 / actual_days)) - 1), 3
+            )
         return cache["annual_return"]
 
     def format(self, value: float) -> str:
@@ -157,7 +159,9 @@ class SharpeRatio(BaseIndicator):
                 cache["volatility"] = volatility_indicator.calculate(cache)
 
             annual_vol = cache["volatility"]
-            cache["sharpe_ratio"] = round(float(cache["annual_return"] / annual_vol if annual_vol != 0 else 0), 3)
+            cache["sharpe_ratio"] = round(
+                float(cache["annual_return"] / annual_vol if annual_vol != 0 else 0), 3
+            )
 
         return cache["sharpe_ratio"]
 
@@ -366,7 +370,9 @@ class AvgDrawdown(BaseIndicator):
             non_zero_drawdown = drawdown.filter(drawdown > 0)
 
             # Calculate average drawdown
-            cache["avg_drawdown"] = round(float(non_zero_drawdown.mean() if len(non_zero_drawdown) > 0 else 0), 3)
+            cache["avg_drawdown"] = round(
+                float(non_zero_drawdown.mean() if len(non_zero_drawdown) > 0 else 0), 3
+            )
 
         return cache["avg_drawdown"]
 
