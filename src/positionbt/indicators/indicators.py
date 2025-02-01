@@ -22,7 +22,7 @@ class TotalReturn(BaseIndicator):
         """
         if "total_return" not in cache:
             curve = cache["merged_df"].get_column("funding_curve")
-            cache["total_return"] = float(curve.tail(1)[0] / curve[0] - 1)
+            cache["total_return"] = round(float(curve.tail(1)[0] / curve[0] - 1), 3)
         return cache["total_return"]
 
     def format(self, value: float) -> str:
@@ -71,7 +71,7 @@ class AnnualReturn(BaseIndicator):
             total_periods = len(cache["merged_df"].get_column("funding_curve"))
             actual_days = total_periods / periods_per_day
 
-            cache["annual_return"] = float(((1 + total_return) ** (365 / actual_days)) - 1)
+            cache["annual_return"] = round(float(((1 + total_return) ** (365 / actual_days)) - 1), 3)
         return cache["annual_return"]
 
     def format(self, value: float) -> str:
@@ -108,9 +108,8 @@ class Volatility(BaseIndicator):
         periods_per_day = cache["periods_per_day"]
         annual_periods = periods_per_day * cache["annual_trading_days"]
 
-        volatility = returns.std() * (annual_periods**0.5)
-        cache["volatility"] = volatility
-        return volatility
+        cache["volatility"] = round(returns.std() * (annual_periods**0.5), 3)
+        return cache["volatility"]
 
     def format(self, value: float) -> str:
         """Format volatility value as percentage
@@ -158,9 +157,8 @@ class SharpeRatio(BaseIndicator):
                 cache["volatility"] = volatility_indicator.calculate(cache)
 
             annual_vol = cache["volatility"]
-            cache["sharpe_ratio"] = float(
-                cache["annual_return"] / annual_vol if annual_vol != 0 else 0
-            )
+            cache["sharpe_ratio"] = round(float(cache["annual_return"] / annual_vol if annual_vol != 0 else 0), 3)
+
         return cache["sharpe_ratio"]
 
     def format(self, value: float) -> str:
@@ -210,9 +208,7 @@ class MaxDrawdown(BaseIndicator):
             )
 
             # Get maximum drawdown
-            max_dd = float(df.get_column("drawdown").max())
-
-            cache["max_drawdown"] = max_dd
+            cache["max_drawdown"] = round(float(df.get_column("drawdown").max()), 3)
 
         return cache["max_drawdown"]
 
@@ -279,7 +275,7 @@ class MaxDrawdownDuration(BaseIndicator):
 
         # Calculate duration in days
         duration_seconds = (max_drawdown_end - peak_before_max_dd).total_seconds()
-        duration_days = duration_seconds / (24 * 3600)
+        duration_days = round(duration_seconds / (24 * 3600), 0)
 
         cache["max_drawdown_duration"] = duration_days
         return duration_days
@@ -319,9 +315,8 @@ class WinRate(BaseIndicator):
         if total_trades == 0:
             return 0.0
         winning_trades = (returns > 0).sum()
-        win_rate = winning_trades / total_trades
-        cache["win_rate"] = win_rate
-        return win_rate
+        cache["win_rate"] = round(winning_trades / total_trades, 3)
+        return cache["win_rate"]
 
     def format(self, value: float) -> str:
         """Format win rate value as percentage
@@ -371,9 +366,7 @@ class AvgDrawdown(BaseIndicator):
             non_zero_drawdown = drawdown.filter(drawdown > 0)
 
             # Calculate average drawdown
-            avg_dd = float(non_zero_drawdown.mean() if len(non_zero_drawdown) > 0 else 0)
-
-            cache["avg_drawdown"] = avg_dd
+            cache["avg_drawdown"] = round(float(non_zero_drawdown.mean() if len(non_zero_drawdown) > 0 else 0), 3)
 
         return cache["avg_drawdown"]
 
@@ -426,9 +419,9 @@ class ProfitLossRatio(BaseIndicator):
             if avg_loss == 0:  # Avoid division by zero
                 ratio = float("inf") if avg_profit > 0 else 0
             else:
-                ratio = avg_profit / avg_loss
+                ratio = round(avg_profit / avg_loss, 3)
 
-            cache["profit_loss_ratio"] = float(ratio)
+            cache["profit_loss_ratio"] = ratio
 
         return cache["profit_loss_ratio"]
 

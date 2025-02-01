@@ -55,7 +55,7 @@ def test_annual_return(sample_cache):
 
     # Verify annualized calculation: (1 + 0.08)^(365/5) - 1
     expected = ((1 + 0.08) ** (365 / 5)) - 1
-    assert abs(result - expected) < 1e-6
+    assert abs(result - expected) < 1e-3
     assert "%" in indicator.format(result)
 
 
@@ -67,7 +67,7 @@ def test_volatility(sample_cache):
     # Verify annualized volatility calculation
     returns = sample_cache["merged_df"].get_column("returns")
     expected = float(returns.std() * (252**0.5))
-    assert abs(result - expected) < 1e-6
+    assert abs(result - expected) < 1e-3
     assert "%" in indicator.format(result)
 
 
@@ -88,7 +88,7 @@ def test_sharpe_ratio(sample_cache):
 
     # Verify Sharpe ratio calculation
     expected = sample_cache["annual_return"] / sample_cache["volatility"]
-    assert abs(result - expected) < 1e-6
+    assert abs(result - expected) < 1e-3
     assert "." in indicator.format(result)
 
 
@@ -146,7 +146,7 @@ def test_profit_loss_ratio(sample_cache):
     loss_trades = returns.filter(returns < 0)
     expected = profit_trades.mean() / abs(loss_trades.mean())
 
-    assert abs(result - expected) < 1e-6
+    assert abs(result - expected) < 1e-3
     assert "." in indicator.format(result)
 
 
