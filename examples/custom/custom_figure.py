@@ -28,16 +28,16 @@ class DrawdownFigure(BaseFigure):
             Plotly figure object containing drawdown visualization
 
         """
-        # Calculate cumulative maximum of funding curve
-        cummax = self.funding_curve.get_column("funding_curve").cum_max()
+        # Calculate cumulative maximum of equity curve
+        cummax = self.equity_curve.get_column("equity_curve").cum_max()
 
         # Calculate drawdown as percentage from peak
-        drawdown = (self.funding_curve.get_column("funding_curve") - cummax) / cummax
+        drawdown = (self.equity_curve.get_column("equity_curve") - cummax) / cummax
 
         # Add drawdown trace to figure
         self._fig.add_trace(
             go.Scatter(
-                x=self.funding_curve.get_column("time"),
+                x=self.equity_curve.get_column("time"),
                 y=drawdown,
                 fill="tozeroy",  # Fill area from line to zero
                 name="drawdown",

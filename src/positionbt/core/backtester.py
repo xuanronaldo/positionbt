@@ -40,14 +40,14 @@ class PositionBacktester:
         except ValidationError as e:
             raise ValueError(f"Invalid input: {e!s}")
 
-    def _calculate_funding_curve(self, merged_df: pl.DataFrame) -> pl.DataFrame:
-        """Calculate funding curve
+    def _calculate_equity_curve(self, merged_df: pl.DataFrame) -> pl.DataFrame:
+        """Calculate equity curve
 
         Args:
             merged_df: DataFrame containing close prices and positions
 
         Returns:
-            DataFrame with time, funding curve and returns
+            DataFrame with time, equity curve and returns
 
         """
         # Calculate returns
@@ -63,15 +63,15 @@ class PositionBacktester:
         # Calculate net returns
         net_returns = position_returns - transaction_costs
 
-        # Calculate funding curve
-        funding_curve = (1 + net_returns).cum_prod()
+        # Calculate equity curve
+        equity_curve = (1 + net_returns).cum_prod()
 
         # Create result DataFrame
         result = pl.DataFrame(
             {
                 "time": merged_df["time"],
-                "funding_curve": funding_curve,
-                "returns": net_returns,
+                "equity_curve": equity_curve,
+                "net_returns": net_returns,
             }
         )
 
@@ -86,11 +86,12 @@ class PositionBacktester:
         """
         indicator_registry.register(indicator)
 
-    def run(self, position_df: Union[pl.DataFrame, pd.DataFrame]) -> BacktestResult:
+    def run(self, position_df: Union[pl.DataFrame, pd.DataFrame], **kwargs) -> BacktestResult:
         """Run backtest and return results
 
         Args:
             position_df: DataFrame containing position data
+            **kwargs: Additional keyword arguments to be passed to indicators via cache
 
         Returns:
             BacktestResult: Object containing backtest results
@@ -108,7 +109,7 @@ class PositionBacktester:
 
             # Merge data and sort by time
             merged_df = self.close_df.join(
-                position_df.select(["time", "position"]),
+                position_df,
                 on="time",
                 how="inner",
             ).sort("time")
@@ -116,11 +117,12 @@ class PositionBacktester:
         except ValidationError as e:
             raise ValueError(f"Invalid position input: {e!s}")
 
-        # Calculate funding curve
-        merged_df = merged_df.join(self._calculate_funding_curve(merged_df), on="time")
+        # Calculate equity curve
+        merged_df = merged_df.join(self._calculate_equity_curve(merged_df), on="time")
 
         # Prepare cache
         cache = self._prepare_cache(merged_df)
+        cache.update(kwargs)
 
         # Calculate indicators
         results = self._calculate_indicators(cache)
@@ -141,7 +143,7 @@ class PositionBacktester:
         """Prepare calculation cache
 
         Args:
-            merged_df: DataFrame containing time, funding_curve and returns columns
+            merged_df: DataFrame containing time, equity_curve and returns columns
 
         Returns:
             Dict containing cached data needed for calculations

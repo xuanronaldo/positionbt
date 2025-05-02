@@ -21,7 +21,7 @@ class TotalReturn(BaseIndicator):
 
         """
         if "total_return" not in cache:
-            curve = cache["merged_df"].get_column("funding_curve")
+            curve = cache["merged_df"].get_column("equity_curve")
             cache["total_return"] = round(float(curve.tail(1)[0] / curve[0] - 1), 3)
         return cache["total_return"]
 
@@ -68,7 +68,7 @@ class AnnualReturn(BaseIndicator):
         if "annual_return" not in cache:
             total_return = cache["total_return"]
             periods_per_day = cache["periods_per_day"]
-            total_periods = len(cache["merged_df"].get_column("funding_curve"))
+            total_periods = len(cache["merged_df"].get_column("equity_curve"))
             actual_days = total_periods / periods_per_day
 
             cache["annual_return"] = round(
@@ -106,11 +106,11 @@ class Volatility(BaseIndicator):
             Annualized volatility as a float
 
         """
-        returns = cache["merged_df"].get_column("returns")
+        net_returns = cache["merged_df"].get_column("net_returns")
         periods_per_day = cache["periods_per_day"]
         annual_periods = periods_per_day * cache["annual_trading_days"]
 
-        cache["volatility"] = round(returns.std() * (annual_periods**0.5), 3)
+        cache["volatility"] = round(net_returns.std() * (annual_periods**0.5), 3)
         return cache["volatility"]
 
     def format(self, value: float) -> str:
@@ -204,11 +204,11 @@ class MaxDrawdown(BaseIndicator):
             df = cache["merged_df"]
 
             # Calculate historical peak
-            df = df.with_columns(pl.col("funding_curve").cum_max().alias("peak"))
+            df = df.with_columns(pl.col("equity_curve").cum_max().alias("peak"))
 
             # Calculate drawdown
             df = df.with_columns(
-                ((pl.col("peak") - pl.col("funding_curve")) / pl.col("peak")).alias("drawdown")
+                ((pl.col("peak") - pl.col("equity_curve")) / pl.col("peak")).alias("drawdown")
             )
 
             # Get maximum drawdown
@@ -259,11 +259,11 @@ class MaxDrawdownDuration(BaseIndicator):
         df = cache["merged_df"]
 
         # Calculate historical peak
-        df = df.with_columns(pl.col("funding_curve").cum_max().alias("peak"))
+        df = df.with_columns(pl.col("equity_curve").cum_max().alias("peak"))
 
         # Calculate drawdown
         df = df.with_columns(
-            ((pl.col("peak") - pl.col("funding_curve")) / pl.col("peak")).alias("drawdown")
+            ((pl.col("peak") - pl.col("equity_curve")) / pl.col("peak")).alias("drawdown")
         )
 
         # Find the end time of the maximum drawdown
@@ -273,7 +273,7 @@ class MaxDrawdownDuration(BaseIndicator):
         # Find the start time of the drawdown (most recent peak)
         peak_before_max_dd = (
             df.filter(pl.col("time") <= max_drawdown_end)
-            .filter(pl.col("funding_curve") == pl.col("peak"))
+            .filter(pl.col("equity_curve") == pl.col("peak"))
             .get_column("time")[-1]
         )
 
@@ -314,11 +314,11 @@ class WinRate(BaseIndicator):
             Win rate as a float
 
         """
-        returns = cache["merged_df"].get_column("returns")
-        total_trades = len(returns)
+        net_returns = cache["merged_df"].get_column("net_returns")
+        total_trades = len(net_returns)
         if total_trades == 0:
             return 0.0
-        winning_trades = (returns > 0).sum()
+        winning_trades = (net_returns > 0).sum()
         cache["win_rate"] = round(winning_trades / total_trades, 3)
         return cache["win_rate"]
 
@@ -358,7 +358,7 @@ class AvgDrawdown(BaseIndicator):
 
         """
         if "avg_drawdown" not in cache:
-            curve = cache["merged_df"].get_column("funding_curve")
+            curve = cache["merged_df"].get_column("equity_curve")
 
             # Calculate historical peak
             peak = curve.cum_max()
@@ -411,11 +411,11 @@ class ProfitLossRatio(BaseIndicator):
 
         """
         if "profit_loss_ratio" not in cache:
-            returns = cache["merged_df"].get_column("returns")
+            net_returns = cache["merged_df"].get_column("net_returns")
 
             # Separate winning and losing trades
-            profit_trades = returns.filter(returns > 0)
-            loss_trades = returns.filter(returns < 0)
+            profit_trades = net_returns.filter(net_returns > 0)
+            loss_trades = net_returns.filter(net_returns < 0)
 
             # Calculate average profit and average loss
             avg_profit = profit_trades.mean() if len(profit_trades) > 0 else 0

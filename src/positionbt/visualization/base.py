@@ -26,7 +26,7 @@ class BaseFigure(ABC):
 
         """
         self.results = results
-        self.funding_curve = results.funding_curve
+        self.equity_curve = results.equity_curve
         self._fig = self._create_base_figure()
 
     @abstractmethod

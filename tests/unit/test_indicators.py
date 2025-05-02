@@ -20,14 +20,14 @@ from positionbt.indicators.indicators import (
 def sample_cache():
     """Create sample data for testing"""
     dates = [datetime(2023, 1, 1) + timedelta(days=i) for i in range(5)]
-    funding_curve = [1.0, 1.02, 0.98, 1.05, 1.08]
-    returns = [0.0, 0.02, -0.039, 0.071, 0.029]
+    equity_curve = [1.0, 1.02, 0.98, 1.05, 1.08]
+    net_returns = [0.0, 0.02, -0.039, 0.071, 0.029]
 
     df = pl.DataFrame(
         {
             "time": dates,
-            "funding_curve": pl.Series(funding_curve, dtype=pl.Float64),
-            "returns": pl.Series(returns, dtype=pl.Float64),
+            "equity_curve": pl.Series(equity_curve, dtype=pl.Float64),
+            "net_returns": pl.Series(net_returns, dtype=pl.Float64),
         }
     )
 
@@ -65,8 +65,8 @@ def test_volatility(sample_cache):
     result = indicator.calculate(sample_cache)
 
     # Verify annualized volatility calculation
-    returns = sample_cache["merged_df"].get_column("returns")
-    expected = float(returns.std() * (252**0.5))
+    net_returns = sample_cache["merged_df"].get_column("net_returns")
+    expected = float(net_returns.std() * (252**0.5))
     assert abs(result - expected) < 1e-3
     assert "%" in indicator.format(result)
 
@@ -120,7 +120,7 @@ def test_win_rate(sample_cache):
     indicator = WinRate()
     result = indicator.calculate(sample_cache)
 
-    # Sample data has 3 positive returns and 2 negative returns
+    # Sample data has 3 positive net_returns and 2 negative net_returns
     expected = 3 / 5
     assert abs(result - expected) < 1e-6
     assert "%" in indicator.format(result)
@@ -141,9 +141,9 @@ def test_profit_loss_ratio(sample_cache):
     result = indicator.calculate(sample_cache)
 
     # 验证盈亏比计算
-    returns = sample_cache["merged_df"].get_column("returns")
-    profit_trades = returns.filter(returns > 0)
-    loss_trades = returns.filter(returns < 0)
+    net_returns = sample_cache["merged_df"].get_column("net_returns")
+    profit_trades = net_returns.filter(net_returns > 0)
+    loss_trades = net_returns.filter(net_returns < 0)
     expected = profit_trades.mean() / abs(loss_trades.mean())
 
     assert abs(result - expected) < 1e-3
@@ -156,8 +156,8 @@ def test_edge_cases():
     empty_df = pl.DataFrame(
         {
             "time": [],
-            "funding_curve": pl.Series([], dtype=pl.Float64),
-            "returns": pl.Series([], dtype=pl.Float64),
+            "equity_curve": pl.Series([], dtype=pl.Float64),
+            "net_returns": pl.Series([], dtype=pl.Float64),
         }
     )
     empty_cache = {

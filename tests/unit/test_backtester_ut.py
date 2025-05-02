@@ -37,14 +37,14 @@ def test_backtester_invalid_trading_days():
         PositionBacktester(pl.DataFrame(), annual_trading_days=0)
 
 
-def test_calculate_funding_curve(sample_data):
-    # Test funding curve calculation
+def test_calculate_equity_curve(sample_data):
+    # Test equity curve calculation
     bt = PositionBacktester(sample_data["close_df"], commission=0.001)
     result = bt.run(sample_data["position_df"])
 
-    # Verify basic properties of funding curve
-    assert "funding_curve" in result.dataframes["merged_df"].columns
-    assert "returns" in result.dataframes["merged_df"].columns
+    # Verify basic properties of equity curve
+    assert "equity_curve" in result.dataframes["merged_df"].columns
+    assert "net_returns" in result.dataframes["merged_df"].columns
 
 
 def test_pandas_input_compatibility(sample_data):

@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Optional
 
 import polars as pl
+from markupsafe import Markup
 
 from positionbt.models.models import BacktestResult
 from positionbt.visualization.base import BaseFigure
@@ -83,7 +84,7 @@ class BacktestVisualizer:
 
     def _generate_data_info_html(self, results: BacktestResult) -> str:
         """Generate HTML for data information"""
-        df = results.funding_curve
+        df = results.equity_curve
         start_date = df.select(pl.col("time").min()).item().strftime("%Y-%m-%d")
         end_date = df.select(pl.col("time").max()).item().strftime("%Y-%m-%d")
         total_days = (
@@ -144,11 +145,13 @@ class BacktestVisualizer:
         if not notes:
             return ""
 
+        # 将反斜杠转移操作移到f-string外部
+        processed_notes = Markup(notes).replace("\n", "<br>")
         return f"""
         <div class="info-section">
             <h2>Notes</h2>
             <div class="info-content">
-                <div class="info-item">{notes}</div>
+                <div class="info-item">{processed_notes}</div>
             </div>
         </div>
         """

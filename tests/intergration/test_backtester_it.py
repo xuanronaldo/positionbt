@@ -14,8 +14,8 @@ class CustomIndicator(BaseIndicator):
         return "custom_indicator"
 
     def calculate(self, cache):
-        returns = cache["merged_df"].get_column("returns")
-        return float(returns.mean())
+        net_returns = cache["merged_df"].get_column("net_returns")
+        return float(net_returns.mean())
 
     def format(self, value):
         return f"{value:.4f}"
@@ -66,8 +66,8 @@ def test_multiple_runs_consistency(large_sample_data):
 
     # Verify results are consistent
     assert (
-        result1.dataframes["merged_df"].get_column("funding_curve")
-        == result2.dataframes["merged_df"].get_column("funding_curve")
+        result1.dataframes["merged_df"].get_column("equity_curve")
+        == result2.dataframes["merged_df"].get_column("equity_curve")
     ).all()
 
 
@@ -83,9 +83,9 @@ def test_edge_cases(large_sample_data):
     )
     result = bt.run(zero_positions)
 
-    # Verify funding curve stays at 1 for empty positions
-    funding_curve = result.dataframes["merged_df"].get_column("funding_curve")
-    assert (funding_curve == 1.0).all()
+    # Verify equity curve stays at 1 for empty positions
+    equity_curve = result.dataframes["merged_df"].get_column("equity_curve")
+    assert (equity_curve == 1.0).all()
 
 
 def test_high_frequency_data(large_sample_data):

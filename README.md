@@ -232,16 +232,16 @@ class DrawdownFigure(BaseFigure):
             Plotly figure object containing drawdown visualization
 
         """
-        # Calculate cumulative maximum of funding curve
-        cummax = self.funding_curve.get_column("funding_curve").cum_max()
+        # Calculate cumulative maximum of equity curve
+        cummax = self.equity_curve.get_column("equity_curve").cum_max()
 
         # Calculate drawdown as percentage from peak
-        drawdown = (self.funding_curve.get_column("funding_curve") - cummax) / cummax
+        drawdown = (self.equity_curve.get_column("equity_curve") - cummax) / cummax
 
         # Add drawdown trace to figure
         self._fig.add_trace(
             go.Scatter(
-                x=self.funding_curve.get_column("time"),
+                x=self.equity_curve.get_column("time"),
                 y=drawdown,
                 fill="tozeroy",  # Fill area from line to zero
                 name="drawdown",
@@ -315,7 +315,7 @@ visualizer.show_in_browser(backtest_result, backtester.params)
 
 | 图表名称 | 组件ID | 说明 | 主要特点 |
 |---------|--------|------|----------|
-| 净值曲线图 | funding_curve | 展示策略净值变化 | - 显示完整的净值走势<br>- 标注最大回撤区间<br>- 标记最大回撤的峰谷点<br>- 支持交互式缩放查看 |
+| 净值曲线图 | equity_curve | 展示策略净值变化 | - 显示完整的净值走势<br>- 标注最大回撤区间<br>- 标记最大回撤的峰谷点<br>- 支持交互式缩放查看 |
 | 月度收益分布图 | monthly_returns | 展示策略月度收益分布 | - 使用柱状图展示每月收益<br>- 红绿双色区分盈亏<br>- 支持收益率精确查看 |
 
 ### 信息面板
@@ -357,7 +357,7 @@ PositionBacktester(
 回测结果的数据类，包含回测的所有结果数据。
 
 **主要属性：**
-- `funding_curve`: 净值曲线数据
+- `equity_curve`: 净值曲线数据
 - `indicator_values`: 指标计算结果
 - `formatted_indicator_values`: 格式化后的指标值
 
@@ -407,7 +407,7 @@ BacktestVisualizer(
 
 **可用属性：**
 - `results`: 回测结果对象
-- `funding_curve`: 净值曲线数据
+- `equity_curve`: 净值曲线数据
 - `_fig`: 基础图表对象（包含默认布局设置）
 
 ### 注册器

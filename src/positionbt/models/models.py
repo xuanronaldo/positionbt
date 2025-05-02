@@ -12,9 +12,9 @@ class BacktestResult:
     _formatted_indicator_values: dict[str, str]
 
     @property
-    def funding_curve(self) -> pl.DataFrame:
-        """Get funding curve DataFrame"""
-        return self._dataframes["merged_df"].select(pl.col("time"), pl.col("funding_curve"))
+    def equity_curve(self) -> pl.DataFrame:
+        """Get equity curve DataFrame"""
+        return self._dataframes["merged_df"].select(pl.col("time"), pl.col("equity_curve"))
 
     @property
     def dataframes(self) -> dict[str, pl.DataFrame]:

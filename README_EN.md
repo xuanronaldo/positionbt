@@ -230,16 +230,16 @@ class DrawdownFigure(BaseFigure):
             Plotly figure object containing drawdown visualization
 
         """
-        # Calculate cumulative maximum of funding curve
-        cummax = self.funding_curve.get_column("funding_curve").cum_max()
+        # Calculate cumulative maximum of equity curve
+        cummax = self.equity_curve.get_column("equity_curve").cum_max()
 
         # Calculate drawdown as percentage from peak
-        drawdown = (self.funding_curve.get_column("funding_curve") - cummax) / cummax
+        drawdown = (self.equity_curve.get_column("equity_curve") - cummax) / cummax
 
         # Add drawdown trace to figure
         self._fig.add_trace(
             go.Scatter(
-                x=self.funding_curve.get_column("time"),
+                x=self.equity_curve.get_column("time"),
                 y=drawdown,
                 fill="tozeroy",  # Fill area from line to zero
                 name="drawdown",
@@ -313,7 +313,7 @@ Backtest Report:
 
 | Chart Name | Component ID | Description | Key Features |
 |------------|--------------|-------------|--------------|
-| NAV Curve | funding_curve | Shows strategy NAV changes | - Displays complete NAV trend<br>- Marks maximum drawdown period<br>- Marks peak and trough points of max drawdown<br>- Supports interactive zoom viewing |
+| NAV Curve | equity_curve | Shows strategy NAV changes | - Displays complete NAV trend<br>- Marks maximum drawdown period<br>- Marks peak and trough points of max drawdown<br>- Supports interactive zoom viewing |
 | Monthly Returns Distribution | monthly_returns | Shows monthly return distribution | - Uses bar chart for monthly returns<br>- Red/green colors distinguish profits/losses<br>- Supports precise return rate viewing |
 
 ### Information Panels
@@ -355,7 +355,7 @@ PositionBacktester(
 Data class containing all backtest results.
 
 **Main Attributes:**
-- `funding_curve`: NAV curve data
+- `equity_curve`: NAV curve data
 - `indicator_values`: Indicator calculation results
 - `formatted_indicator_values`: Formatted indicator values
 
@@ -404,7 +404,7 @@ Base class for visualization charts, used for custom chart types.
 
 **Available Attributes:**
 - `results`: Backtest result object
-- `funding_curve`: NAV curve data
+- `equity_curve`: NAV curve data
 - `_fig`: Base figure object (with default layout settings)
 
 ### Registries

@@ -1,112 +1,144 @@
 import plotly.graph_objects as go
 import polars as pl
+from plotly.subplots import make_subplots
 
 from positionbt.visualization.base import BaseFigure
 
 
-class FundingCurveFigure(BaseFigure):
-    """Funding curve visualization figure"""
+class EquityCurveFigure(BaseFigure):
+    """equity curve visualization figure with close price subplot"""
 
     @property
     def name(self) -> str:
-        return "funding_curve"
+        return "equity_curve"
 
     @property
     def title(self) -> str:
-        return "Funding Curve"
+        return "Equity Curve"
 
     def create(self) -> go.Figure:
-        """Create funding curve figure
+        # Create subplots with shared X axis
+        self._fig = make_subplots(
+            rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.05, row_heights=[1, 1]
+        ).update_layout(height=1000)
 
-        Returns:
-            Plotly figure object containing funding curve visualization
+        # Get close price data
+        merged_df = self.results.get_dataframe("merged_df")
+        close_prices = merged_df.select(["time", "close"])
 
-        """
-        # Add funding curve trace
+        # Main equity curve (row 1)
         self._fig.add_trace(
             go.Scatter(
-                x=self.funding_curve.get_column("time"),
-                y=self.funding_curve.get_column("funding_curve"),
-                name="NAV",
+                x=self.equity_curve["time"],
+                y=self.equity_curve["equity_curve"],
+                name="Equity Curve",
                 line=dict(color="#1f77b4"),
-            )
+            ),
+            row=1,
+            col=1,
         )
 
-        # Check if max drawdown is available and add visualization
-        if "max_drawdown" in self.results.indicator_values:
-            cummax = self.funding_curve.get_column("funding_curve").cum_max()
-            drawdown = (self.funding_curve.get_column("funding_curve") - cummax) / cummax
-            self._add_max_drawdown_visualization(self._fig, cummax, drawdown)
-        else:
-            print("max_drawdown not found in indicators")  # Debug information
-
-        # Update layout with specific y-axis formatting
-        self._fig.update_layout(yaxis=dict(tickformat=".3f"))
-        return self._fig
-
-    def _add_max_drawdown_visualization(
-        self, fig: go.Figure, cummax: pl.Series, drawdown: pl.Series
-    ) -> None:
-        """Add maximum drawdown visualization
-
-        Args:
-            fig: Plotly figure object
-            cummax: Series of historical maximum values of the funding curve
-            drawdown: Series of drawdown values
-
-        """
-        # Find start and end points of maximum drawdown
-        max_dd_end_idx = drawdown.arg_min()
-        max_dd_start_idx = (
-            self.funding_curve.slice(0, max_dd_end_idx + 1).get_column("funding_curve").arg_max()
-        )
-
-        # Get data for drawdown region
-        dd_region = self.funding_curve.slice(
-            max_dd_start_idx, max_dd_end_idx - max_dd_start_idx + 1
-        )
-
-        # Add drawdown region trace
-        fig.add_trace(
+        # Close price subplot (row 2)
+        self._fig.add_trace(
             go.Scatter(
-                x=dd_region.get_column("time"),
-                y=dd_region.get_column("funding_curve"),
-                name=f"Max Drawdown Period ({self.results.indicator_values['max_drawdown']:.1%})",
-                line=dict(color="rgba(255,0,0,0.5)"),
-                showlegend=True,
-            )
+                x=close_prices["time"],
+                y=close_prices["close"],
+                name="Close Price",
+                line=dict(color="#2ca02c"),
+            ),
+            row=2,
+            col=1,
         )
 
-        # Add fill area for drawdown
-        fig.add_trace(
-            go.Scatter(
-                x=dd_region.get_column("time"),
-                y=cummax.slice(max_dd_start_idx, max_dd_end_idx - max_dd_start_idx + 1),
-                fill="tonexty",
-                mode="none",
-                fillcolor="rgba(255,0,0,0.2)",
-                showlegend=False,
-                hoverinfo="skip",
-            )
-        )
+        # Get position data and find changes
+        positions = merged_df.select(["time", "position"])
+        position_changes = positions.with_columns(
+            [
+                pl.col("position").diff().alias("delta"),
+                pl.col("position").sign().alias("current_dir"),
+            ]
+        ).filter(pl.col("delta").abs() > 1e-6)
 
-        # Add markers for start and end of maximum drawdown
-        for idx, name, color, symbol, position in [
-            (max_dd_start_idx, "Peak", "green", "triangle-up", "top"),
-            (max_dd_end_idx, "Trough", "red", "triangle-down", "bottom"),
-        ]:
-            point_value = self.funding_curve.row(idx)[1]  # funding_curve value
-            fig.add_trace(
-                go.Scatter(
-                    x=[self.funding_curve.row(idx)[0]],  # time value
-                    y=[point_value],
-                    mode="markers+text",
-                    name=name,
-                    marker=dict(color=color, size=10, symbol=symbol),
-                    text=[f"{name}: {point_value:.2f}"],
-                    textposition=f"{position} center",
+        # Define visual encoding
+        marker_config = {
+            # Long positions
+            (1, 1): dict(color="#4CAF50", symbol="triangle-up", label="Add Long"),  # Green ▲
+            (1, -1): dict(color="#4CAF50", symbol="triangle-down", label="Reduce Long"),  # Green ▼
+            # Short positions
+            (-1, -1): dict(color="#F44336", symbol="triangle-down", label="Add Short"),  # Red ▼
+            (-1, 1): dict(color="#F44336", symbol="triangle-up", label="Reduce Short"),  # Red ▲
+            None: dict(color="#999", symbol="circle", label="Neutral Position"),
+        }
+
+        # Generate marker properties
+        marker_data = []
+        for time, pos, delta, direction in position_changes.rows():
+            action = 1 if delta > 0 else -1
+            key = (direction, action)
+            config = marker_config.get(key, marker_config[None])
+            marker_data.append(
+                {
+                    "time": time,
+                    "position": pos,
+                    "color": config["color"],
+                    "symbol": config["symbol"],
+                    "label": config["label"],
+                }
+            )
+
+        # Add markers to both subplots
+        for row in [1, 2]:
+            y_values = self.equity_curve["equity_curve"] if row == 1 else close_prices["close"]
+            marker_df = (
+                pl.DataFrame(marker_data)
+                .with_columns(pl.col("time").cast(merged_df.schema["time"]))
+                .with_columns(
+                    pl.col("time").dt.replace_time_zone(merged_df.schema["time"].time_zone)
                 )
+                .join(merged_df.select(["time", y_values.name]), on="time", how="inner")
             )
+
+            self._fig.add_trace(
+                go.Scatter(
+                    x=marker_df["time"],
+                    y=marker_df[y_values.name],
+                    mode="markers",
+                    marker=dict(
+                        symbol=marker_df["symbol"],
+                        size=10,
+                        color=marker_df["color"],
+                        line=dict(width=1, color="white"),
+                    ),
+                    hoverinfo="text",
+                    hovertext=[
+                        f"Time: {m['time']}<br>Position: {m['position']:.2f}<br>Status: {m['label']}"
+                        for m in marker_data
+                    ],
+                    showlegend=False,
+                ),
+                row=row,
+                col=1,
+            )
+
+        # Add legend annotation
+        self._fig.add_annotation(
+            x=0.98,
+            y=1.08,
+            xref="paper",
+            yref="paper",
+            showarrow=False,
+            align="left",
+            text=(
+                "<span style='color:#4CAF50'>▲</span> Add Long | "
+                "<span style='color:#4CAF50'>▼</span> Reduce Long<br>"
+                "<span style='color:#F44336'>▼</span> Add Short | "
+                "<span style='color:#F44336'>▲</span> Reduce Short<br>"
+                "<span style='color:#999'>●</span> Neutral Position"
+            ),
+            bgcolor="rgba(255,255,255,0.9)",
+        )
+
+        return self._fig
 
 
 class MonthlyReturnsFigure(BaseFigure):
@@ -129,9 +161,9 @@ class MonthlyReturnsFigure(BaseFigure):
         """
         # Calculate monthly returns
         monthly_returns = (
-            self.funding_curve.with_columns(
+            self.equity_curve.with_columns(
                 [
-                    pl.col("funding_curve").pct_change().alias("returns"),
+                    pl.col("equity_curve").pct_change().alias("returns"),
                     pl.col("time").dt.strftime("%Y-%m").alias("month"),
                 ]
             )
