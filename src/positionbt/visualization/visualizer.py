@@ -145,8 +145,7 @@ class BacktestVisualizer:
         if not notes:
             return ""
 
-        # 将反斜杠转移操作移到f-string外部
-        processed_notes = Markup(notes).replace("\n", "<br>")
+        processed_notes = str(Markup(notes).replace("\n", Markup("<br>")))
         return f"""
         <div class="info-section">
             <h2>Notes</h2>
