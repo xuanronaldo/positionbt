@@ -67,12 +67,10 @@ class AnnualReturn(BaseIndicator):
         """
         if "annual_return" not in cache:
             total_return = cache["total_return"]
-            periods_per_day = cache["periods_per_day"]
-            total_periods = len(cache["merged_df"].get_column("equity_curve"))
-            actual_days = total_periods / periods_per_day
+            total_days = cache["total_days"]
 
             cache["annual_return"] = round(
-                float(((1 + total_return) ** (365 / actual_days)) - 1), 3
+                float(((1 + total_return) ** (365 / total_days)) - 1), 3
             )
         return cache["annual_return"]
 

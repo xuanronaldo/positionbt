@@ -152,15 +152,14 @@ class PositionBacktester:
         times = merged_df.get_column("time")
 
         # Calculate total days
-        total_days = (times[-1] - times[0]).total_seconds() / (24 * 3600)
-        total_days = max(total_days, 1)  # Ensure at least 1 day
+        total_days = max((times[-1] - times[0]).dt.days, 1)
 
         # Calculate data frequency (in days)
         time_diffs = times.diff().drop_nulls()
-        avg_interval = float(time_diffs.mean().total_seconds()) / (24 * 3600)
+        avg_interval = float(time_diffs.min().total_seconds()) / (24 * 3600)
 
         # Calculate periods per day
-        periods_per_day = 1 / avg_interval if avg_interval > 0 else 1
+        periods_per_day = 1 / avg_interval
 
         return {
             "merged_df": merged_df,
