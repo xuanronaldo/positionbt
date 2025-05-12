@@ -28,9 +28,7 @@ class BacktestVisualizer:
             figures: List of figure names to display. If empty list, no figures will be shown.
                     If None, all registered figures will be shown.
         """
-        self._template_path = (
-            Path(__file__).parent.parent / "visualization" / "templates" / "report_template.html"
-        )
+        self._template_path = Path(__file__).parent.parent / "visualization" / "templates" / "report_template.html"
         self.figures_config = figures
 
     def _generate_all_figures(self, results: BacktestResult) -> dict[str, str]:
@@ -71,25 +69,16 @@ class BacktestVisualizer:
         params_formatted = {
             "Commission Rate": f"{params['commission']:.3%}",
             "Annual Trading Days": f"{params['annual_trading_days']} days",
-            "Indicators": (
-                "All indicators"
-                if params["indicators"] == "all"
-                else ", ".join(params["indicators"])
-            ),
+            "Indicators": ("All indicators" if params["indicators"] == "all" else ", ".join(params["indicators"])),
         }
-        return "\n".join(
-            f'<div class="info-item"><span style="color: #666;">{k}:</span> {v}</div>'
-            for k, v in params_formatted.items()
-        )
+        return "\n".join(f'<div class="info-item"><span style="color: #666;">{k}:</span> {v}</div>' for k, v in params_formatted.items())
 
     def _generate_data_info_html(self, results: BacktestResult) -> str:
         """Generate HTML for data information"""
         df = results.equity_curve
         start_date = df.select(pl.col("time").min()).item().strftime("%Y-%m-%d")
         end_date = df.select(pl.col("time").max()).item().strftime("%Y-%m-%d")
-        total_days = (
-            df.select(pl.col("time").max()).item() - df.select(pl.col("time").min()).item()
-        ).days
+        total_days = (df.select(pl.col("time").max()).item() - df.select(pl.col("time").min()).item()).days
 
         # Calculate data frequency
         time_diff = df.select(pl.col("time").diff().median()).item()
@@ -114,10 +103,7 @@ class BacktestVisualizer:
             "Data Frequency": frequency,
         }
 
-        return "\n".join(
-            f'<div class="info-item"><span style="color: #666;">{k}:</span> {v}</div>'
-            for k, v in info.items()
-        )
+        return "\n".join(f'<div class="info-item"><span style="color: #666;">{k}:</span> {v}</div>' for k, v in info.items())
 
     def _generate_metrics_html(self, results: BacktestResult) -> str:
         """Generate HTML for metrics"""
@@ -206,9 +192,7 @@ class BacktestVisualizer:
         # Find and replace figures placeholder
         figures_placeholder = "$figures"
         if figures_placeholder in html_content:
-            figures_section = "\n".join(
-                html for html in self._generate_all_figures(results).values()
-            )
+            figures_section = "\n".join(html for html in self._generate_all_figures(results).values())
             html_content = html_content.replace(figures_placeholder, figures_section)
 
         # Save HTML file
@@ -230,9 +214,7 @@ class BacktestVisualizer:
             notes: Optional notes content
             delay: Delay time (seconds) before cleaning temp file
         """
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".html", encoding="utf-8", delete=False
-        ) as tmp_file:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".html", encoding="utf-8", delete=False) as tmp_file:
             self.generate_html_report(results, params, tmp_file.name, notes)
             # Get temporary file path
             tmp_path = Path(tmp_file.name)

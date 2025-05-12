@@ -78,7 +78,7 @@ position_df = close_df.select(pl.col("time")).with_columns(pl.lit(1).alias("posi
 # Initialize backtester with parameters
 backtester = PositionBacktester(
     close_df=close_df,
-    commission=0.001,  # 0.1% commission rate
+    commission_rate=0.001,  # 0.1% commission rate
     annual_trading_days=365,  # Use 365 trading days per year
     indicators="all",  # Calculate all available indicators
 )
@@ -176,7 +176,7 @@ position_df = close_df.select(pl.col("time")).with_columns(pl.lit(1).alias("posi
 # Create backtester instance (using all indicators including the newly registered monthly return)
 backtester = PositionBacktester(
     close_df=close_df,
-    commission=0.001,  # 0.1% commission rate
+    commission_rate=0.001,  # 0.1% commission rate
     annual_trading_days=365,  # Use 365 trading days per year
     indicators=["monthly_return"],  # Use all registered indicators
 )
@@ -272,7 +272,7 @@ position_df = close_df.select(pl.col("time")).with_columns(pl.lit(1).alias("posi
 # Initialize backtester
 backtester = PositionBacktester(
     close_df=close_df,
-    commission=0.001,  # 0.1% commission rate
+    commission_rate=0.001,  # 0.1% commission rate
     annual_trading_days=365,  # Use 365 trading days per year
     indicators="all",  # Calculate all available indicators
 )
@@ -315,8 +315,10 @@ visualizer.show_in_browser(backtest_result, backtester.params)
 
 | 图表名称 | 组件ID | 说明 | 主要特点 |
 |---------|--------|------|----------|
-| 净值曲线图 | equity_curve | 展示策略净值变化 | - 显示完整的净值走势<br>- 标注最大回撤区间<br>- 标记最大回撤的峰谷点<br>- 支持交互式缩放查看 |
-| 月度收益分布图 | monthly_returns | 展示策略月度收益分布 | - 使用柱状图展示每月收益<br>- 红绿双色区分盈亏<br>- 支持收益率精确查看 |
+| 交易表现图 | trading_performance | 展示策略整体交易表现 | - 包含三个子图：净值曲线、收盘价和回撤<br>- 在净值曲线和收盘价图上标注交易点位<br>- 使用不同颜色和形状标记多空交易<br>- 支持交互式缩放查看 |
+| 月度收益分布图 | monthly_returns | 展示策略月度收益分布 | - 使用柱状图展示每月收益<br>- 红绿双色区分盈亏<br>- 支持收益率精确查看<br>- 清晰展示月度收益的分布情况 |
+| 周度收益热力图 | weekly_returns_heatmap | 展示策略周度收益分布 | - 类似 GitHub 贡献图的热力图展示<br>- 使用红蓝色系表示盈亏<br>- 支持周度收益的精确查看<br>- 直观展示收益的时间分布特征 |
+| 仓位分析图 | position_analysis | 分析策略仓位特征 | - 包含三个子图：仓位频率分布、仓位收益率分布、仓位价格收益率分布<br>- 使用柱状图展示不同仓位区间的特征<br>- 支持交互式查看详细数据<br>- 帮助分析仓位与收益的关系 |
 
 ### 信息面板
 
@@ -338,7 +340,7 @@ visualizer.show_in_browser(backtest_result, backtester.params)
 ```python
 PositionBacktester(
     close_df: pl.DataFrame,
-    commission: float = 0.001,
+    commission_rate: float = 0.0,
     annual_trading_days: int = 252,
     indicators: Union[str, list[str]] = "all"
 )
@@ -346,7 +348,7 @@ PositionBacktester(
 
 **参数说明：**
 - `close_df`: 包含 `time` 和 `close` 列的 Polars DataFrame
-- `commission`: 交易手续费率，默认 0.1%
+- `commission_rate`: 交易手续费率，默认 0.0%
 - `annual_trading_days`: 年化天数，默认 252
 - `indicators`: 需要计算的指标，可以是 "all" 或指标名称列表
 

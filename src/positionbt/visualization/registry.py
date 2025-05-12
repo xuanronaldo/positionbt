@@ -1,4 +1,5 @@
 import inspect
+from collections import OrderedDict
 
 from positionbt.visualization import figures
 from positionbt.visualization.base import BaseFigure
@@ -10,13 +11,14 @@ class FigureRegistry:
     """Registry for managing visualization figures"""
 
     def __init__(self):
-        self._registry: dict[str, type[BaseFigure]] = {}
+        self._registry: OrderedDict[str, type[BaseFigure]] = OrderedDict()
         self._load_built_in_figures()
 
-    def register(self, figure_cls: type[BaseFigure]) -> None:
+    def register(self, name: str, figure_cls: type[BaseFigure]) -> None:
         """Register a figure class
 
         Args:
+            name: Name of the figure to register
             figure_cls: Figure class to register (must inherit from BaseFigure)
 
         Raises:
@@ -25,7 +27,7 @@ class FigureRegistry:
         """
         if not issubclass(figure_cls, BaseFigure):
             raise ValueError("Figure class must be a subclass of BaseFigure")
-        self._registry[figure_cls.name] = figure_cls
+        self._registry[name] = figure_cls
 
     def get(self, name: str) -> type[BaseFigure]:
         """Get a figure class by name
@@ -57,19 +59,17 @@ class FigureRegistry:
     def _load_built_in_figures(self) -> None:
         """Automatically load built-in figures
 
-        This method scans the figures module and registers all classes
-        that inherit from BaseFigure (excluding BaseFigure itself)
+        This method loads figure classes in the order specified by FIGURE_ORDER
         """
         # Get all members from figures module
-        for name, obj in inspect.getmembers(figures):
-            # Check if it's a class and inherits from BaseFigure
-            if (
-                inspect.isclass(obj)
-                and issubclass(obj, BaseFigure)
-                and obj != BaseFigure
-                and hasattr(obj, "name")
-            ):
-                self.register(obj)
+        members = dict(inspect.getmembers(figures))
+
+        # Register classes in the order specified by FIGURE_ORDER
+        for class_name in figures.FIGURE_ORDER:
+            if class_name in members:
+                obj = members[class_name]
+                if inspect.isclass(obj) and issubclass(obj, BaseFigure) and obj != BaseFigure and hasattr(obj, "name"):
+                    self.register(class_name, obj)
 
 
 # Global figure registry instance

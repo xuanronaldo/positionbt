@@ -1,6 +1,6 @@
 [tool.ruff]
 # Line length configuration
-line-length = 110
+line-length = 150
 
 # Target Python version
 target-version = "py39"

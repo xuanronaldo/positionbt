@@ -15,20 +15,20 @@ class ValidationError(Exception):
     pass
 
 
-def validate_commission(commission: float) -> None:
+def validate_commission_rate(commission_rate: float) -> None:
     """Validate commission rate
 
     Args:
-        commission: Commission rate as a float
+        commission_rate: Commission rate as a float
 
     Raises:
-        ValidationError: If commission is not a number or not between 0 and 1
+        ValidationError: If commission_rate is not a number or not between 0 and 1
 
     """
-    if not isinstance(commission, (int, float)):
-        raise ValidationError("Commission must be a number")
-    if commission < 0 or commission > 1:
-        raise ValidationError("Commission must be between 0 and 1")
+    if not isinstance(commission_rate, (int, float)):
+        raise ValidationError("Commission rate must be a number")
+    if commission_rate < 0 or commission_rate > 1:
+        raise ValidationError("Commission rate must be between 0 and 1")
 
 
 def validate_annual_trading_days(days: int) -> None:

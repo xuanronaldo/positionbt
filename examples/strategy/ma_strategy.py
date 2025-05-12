@@ -5,7 +5,7 @@ from positionbt import BacktestVisualizer, PositionBacktester
 
 close_df = load_close_data()
 
-backtester = PositionBacktester(close_df, commission=0.001, annual_trading_days=365)
+backtester = PositionBacktester(close_df, commission_rate=0.001, annual_trading_days=365)
 
 
 def run_ma_strategy(fast_window: int, slow_window: int) -> dict:
@@ -25,4 +25,4 @@ def run_ma_strategy(fast_window: int, slow_window: int) -> dict:
     visualizer.show_in_browser(backtest_result, backtester.params, notes="MA Strategy")
 
 
-run_ma_strategy(60, 310)
+run_ma_strategy(10, 310)

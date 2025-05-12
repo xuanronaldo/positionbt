@@ -69,9 +69,7 @@ class AnnualReturn(BaseIndicator):
             total_return = cache["total_return"]
             total_days = cache["total_days"]
 
-            cache["annual_return"] = round(
-                float(((1 + total_return) ** (365 / total_days)) - 1), 3
-            )
+            cache["annual_return"] = round(float(((1 + total_return) ** (365 / total_days)) - 1), 3)
         return cache["annual_return"]
 
     def format(self, value: float) -> str:
@@ -157,9 +155,7 @@ class SharpeRatio(BaseIndicator):
                 cache["volatility"] = volatility_indicator.calculate(cache)
 
             annual_vol = cache["volatility"]
-            cache["sharpe_ratio"] = round(
-                float(cache["annual_return"] / annual_vol if annual_vol != 0 else 0), 3
-            )
+            cache["sharpe_ratio"] = round(float(cache["annual_return"] / annual_vol if annual_vol != 0 else 0), 3)
 
         return cache["sharpe_ratio"]
 
@@ -205,9 +201,7 @@ class MaxDrawdown(BaseIndicator):
             df = df.with_columns(pl.col("equity_curve").cum_max().alias("peak"))
 
             # Calculate drawdown
-            df = df.with_columns(
-                ((pl.col("peak") - pl.col("equity_curve")) / pl.col("peak")).alias("drawdown")
-            )
+            df = df.with_columns(((pl.col("peak") - pl.col("equity_curve")) / pl.col("peak")).alias("drawdown"))
 
             # Get maximum drawdown
             cache["max_drawdown"] = round(float(df.get_column("drawdown").max()), 3)
@@ -260,20 +254,14 @@ class MaxDrawdownDuration(BaseIndicator):
         df = df.with_columns(pl.col("equity_curve").cum_max().alias("peak"))
 
         # Calculate drawdown
-        df = df.with_columns(
-            ((pl.col("peak") - pl.col("equity_curve")) / pl.col("peak")).alias("drawdown")
-        )
+        df = df.with_columns(((pl.col("peak") - pl.col("equity_curve")) / pl.col("peak")).alias("drawdown"))
 
         # Find the end time of the maximum drawdown
         max_drawdown_idx = df.get_column("drawdown").arg_max()
         max_drawdown_end = df.get_column("time")[max_drawdown_idx]
 
         # Find the start time of the drawdown (most recent peak)
-        peak_before_max_dd = (
-            df.filter(pl.col("time") <= max_drawdown_end)
-            .filter(pl.col("equity_curve") == pl.col("peak"))
-            .get_column("time")[-1]
-        )
+        peak_before_max_dd = df.filter(pl.col("time") <= max_drawdown_end).filter(pl.col("equity_curve") == pl.col("peak")).get_column("time")[-1]
 
         # Calculate duration in days
         duration_seconds = (max_drawdown_end - peak_before_max_dd).total_seconds()
@@ -312,11 +300,11 @@ class WinRate(BaseIndicator):
             Win rate as a float
 
         """
-        net_returns = cache["merged_df"].get_column("net_returns")
-        total_trades = len(net_returns)
+        return_rate = cache["trade_records"].get_column("return_rate")
+        total_trades = len(return_rate)
         if total_trades == 0:
             return 0.0
-        winning_trades = (net_returns > 0).sum()
+        winning_trades = (return_rate > 0).sum()
         cache["win_rate"] = round(winning_trades / total_trades, 3)
         return cache["win_rate"]
 
@@ -368,9 +356,7 @@ class AvgDrawdown(BaseIndicator):
             non_zero_drawdown = drawdown.filter(drawdown > 0)
 
             # Calculate average drawdown
-            cache["avg_drawdown"] = round(
-                float(non_zero_drawdown.mean() if len(non_zero_drawdown) > 0 else 0), 3
-            )
+            cache["avg_drawdown"] = round(float(non_zero_drawdown.mean() if len(non_zero_drawdown) > 0 else 0), 3)
 
         return cache["avg_drawdown"]
 
@@ -409,11 +395,11 @@ class ProfitLossRatio(BaseIndicator):
 
         """
         if "profit_loss_ratio" not in cache:
-            net_returns = cache["merged_df"].get_column("net_returns")
+            return_rate = cache["trade_records"].get_column("return_rate")
 
             # Separate winning and losing trades
-            profit_trades = net_returns.filter(net_returns > 0)
-            loss_trades = net_returns.filter(net_returns < 0)
+            profit_trades = return_rate.filter(return_rate > 0)
+            loss_trades = return_rate.filter(return_rate < 0)
 
             # Calculate average profit and average loss
             avg_profit = profit_trades.mean() if len(profit_trades) > 0 else 0

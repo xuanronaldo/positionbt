@@ -21,7 +21,7 @@ def sample_data():
 def test_backtester_initialization(sample_data):
     # Test basic initialization
     bt = PositionBacktester(sample_data["close_df"])
-    assert bt.commission == 0.0
+    assert bt.commission_rate == 0.0
     assert bt.annual_trading_days == 252
 
 

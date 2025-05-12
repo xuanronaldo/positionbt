@@ -6,9 +6,7 @@ from examples.data_loader import load_close_data
 from positionbt import PositionBacktester
 
 
-def prepare_ma_data(
-    close_df: pl.DataFrame, min_window: int, max_window: int, step: int
-) -> pl.DataFrame:
+def prepare_ma_data(close_df: pl.DataFrame, min_window: int, max_window: int, step: int) -> pl.DataFrame:
     """Pre-calculate all moving average data
 
     Args:
@@ -47,9 +45,7 @@ def run_ma_strategy(
         pl.col("time"),
         pl.col(f"ma_{fast_window}").alias("fast_line"),
         pl.col(f"ma_{slow_window}").alias("slow_line"),
-    ).with_columns(
-        pl.when(pl.col("fast_line") >= pl.col("slow_line")).then(1).otherwise(0).alias("position")
-    )
+    ).with_columns(pl.when(pl.col("fast_line") >= pl.col("slow_line")).then(1).otherwise(0).alias("position"))
 
     # Run backtest and add strategy identifiers
     results = backtester.run(position_df).indicator_values
@@ -71,7 +67,7 @@ def main():
     # Initialize backtester with settings
     backtester = PositionBacktester(
         close_df=close_df,
-        commission=COMMISSION,
+        commission_rate=COMMISSION,
         annual_trading_days=TRADING_DAYS,
         indicators=["sharpe_ratio"],
     )

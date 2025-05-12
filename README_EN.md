@@ -78,7 +78,7 @@ position_df = close_df.select(pl.col("time")).with_columns(pl.lit(1).alias("posi
 # Initialize backtester with parameters
 backtester = PositionBacktester(
     close_df=close_df,
-    commission=0.001,  # 0.1% commission rate
+    commission_rate=0.001,  # 0.1% commission rate
     annual_trading_days=365,  # Use 365 trading days per year
     indicators="all",  # Calculate all available indicators
 )
@@ -175,7 +175,7 @@ position_df = close_df.select(pl.col("time")).with_columns(pl.lit(1).alias("posi
 # Create backtester instance (using all indicators including the newly registered monthly return)
 backtester = PositionBacktester(
     close_df=close_df,
-    commission=0.001,  # 0.1% commission rate
+    commission_rate=0.001,  # 0.1% commission rate
     annual_trading_days=365,  # Use 365 trading days per year
     indicators=["monthly_return"],  # Use all registered indicators
 )
@@ -270,7 +270,7 @@ position_df = close_df.select(pl.col("time")).with_columns(pl.lit(1).alias("posi
 # Initialize backtester
 backtester = PositionBacktester(
     close_df=close_df,
-    commission=0.001,  # 0.1% commission rate
+    commission_rate=0.001,  # 0.1% commission rate
     annual_trading_days=365,  # Use 365 trading days per year
     indicators="all",  # Calculate all available indicators
 )
@@ -313,8 +313,10 @@ Backtest Report:
 
 | Chart Name | Component ID | Description | Key Features |
 |------------|--------------|-------------|--------------|
-| NAV Curve | equity_curve | Shows strategy NAV changes | - Displays complete NAV trend<br>- Marks maximum drawdown period<br>- Marks peak and trough points of max drawdown<br>- Supports interactive zoom viewing |
-| Monthly Returns Distribution | monthly_returns | Shows monthly return distribution | - Uses bar chart for monthly returns<br>- Red/green colors distinguish profits/losses<br>- Supports precise return rate viewing |
+| Trading Performance | trading_performance | Shows overall trading performance | - Contains three subplots: equity curve, close price, and drawdown<br>- Marks trading points on equity curve and close price charts<br>- Uses different colors and shapes to mark long/short trades<br>- Supports interactive zoom viewing |
+| Monthly Returns Distribution | monthly_returns | Shows monthly return distribution | - Uses bar chart for monthly returns<br>- Red/green colors distinguish profits/losses<br>- Supports precise return rate viewing<br>- Clearly displays monthly return distribution |
+| Weekly Returns Heatmap | weekly_returns_heatmap | Shows weekly return distribution | - Similar to GitHub contribution graph heatmap display<br>- Uses red/blue color scheme to show profits/losses<br>- Supports precise weekly return viewing<br>- Intuitively displays return time distribution features |
+| Position Analysis | position_analysis | Analyzes strategy position characteristics | - Contains three subplots: position frequency distribution, position return distribution, and position price return distribution<br>- Uses bar charts to show characteristics of different position ranges<br>- Supports interactive detailed data viewing<br>- Helps analyze the relationship between positions and returns |
 
 ### Information Panels
 
@@ -336,7 +338,7 @@ Main class for the backtesting engine, used to execute strategy backtests.
 ```python
 PositionBacktester(
     close_df: pl.DataFrame,
-    commission: float = 0.001,
+    commission_rate: float = 0.0,
     annual_trading_days: int = 252,
     indicators: Union[str, list[str]] = "all"
 )
@@ -344,7 +346,7 @@ PositionBacktester(
 
 **Parameters:**
 - `close_df`: Polars DataFrame containing `time` and `close` columns
-- `commission`: Trading commission rate, default 0.1%
+- `commission_rate`: Trading commission rate, default 0.0%
 - `annual_trading_days`: Annual days, default 252
 - `indicators`: Indicators to calculate, can be "all" or list of indicator names
 
