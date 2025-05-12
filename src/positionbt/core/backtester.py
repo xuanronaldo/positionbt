@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import Union
 
 import numpy as np
@@ -284,84 +283,4 @@ class PositionBacktester:
             "commission_rate": self.commission_rate,
             "annual_trading_days": self.annual_trading_days,
             "indicators": list(self.sorted_indicators),
-        }
-
-    @classmethod
-    def sample_cache(cls) -> dict:
-        """Get sample cache for testing
-
-        Returns:
-            Dict containing sample data
-
-        """
-        # Create sample time series
-        times = pl.date_range(
-            start=datetime(2020, 1, 1),
-            end=datetime(2020, 1, 10),
-            interval="1d",
-            eager=True,
-        )
-
-        # Create sample equity curve
-        equity_curve = pl.DataFrame(
-            {
-                "time": times,
-                "equity_curve": [1.0, 1.1, 1.2, 1.15, 1.25, 1.3, 1.35, 1.4, 1.45, 1.5],
-            }
-        )
-
-        # Create sample merged dataframe
-        merged_df = pl.DataFrame(
-            {
-                "time": times,
-                "close": [100.0, 110.0, 120.0, 115.0, 125.0, 130.0, 135.0, 140.0, 145.0, 150.0],
-                "position": [0.0, 1.0, 1.0, -1.0, -1.0, 0.0, 1.0, 1.0, 1.0, 1.0],
-            }
-        )
-
-        # Process position and trade sequence
-        merged_df = (
-            merged_df.with_columns(
-                pl.col("position").forward_fill().fill_null(0.0),
-                prev_position=pl.col("position").shift(1).fill_null(0),
-            )
-            .with_columns(position_changed=(pl.col("position") != pl.col("prev_position")) & (pl.col("position") != 0))
-            .with_columns(trade_seq=pl.when(pl.col("position") != 0).then(pl.col("position_changed").cum_sum()).otherwise(None))
-            .drop("prev_position", "position_changed")
-        )
-
-        # Generate trade records
-        trade_records = (
-            # Filter valid trades and add next period data
-            merged_df.filter(pl.col("trade_seq").is_not_null())
-            .with_columns(
-                pl.col("time").shift(-1).alias("next_time"),
-                pl.col("equity_curve").shift(-1).fill_null(pl.col("equity_curve").last()).alias("next_equity_curve"),
-                pl.col("close").shift(1).fill_null(pl.col("close").first()).alias("prev_close"),
-            )
-            # Group by trade sequence and aggregate
-            .group_by("trade_seq")
-            .agg(
-                pl.col("position").first().alias("position"),
-                pl.col("time").min().alias("entry_time"),
-                pl.col("next_time").max().alias("exit_time"),
-                pl.col("prev_close").first().alias("entry_price"),
-                pl.col("close").last().alias("exit_price"),
-                pl.col("equity_curve").first().alias("entry_equity"),
-                pl.col("next_equity_curve").last().alias("exit_equity"),
-            )
-            # Calculate returns
-            .with_columns(
-                (pl.col("exit_equity") / pl.col("entry_equity") - 1).alias("return_rate"),
-                (pl.col("exit_price") / pl.col("entry_price") - 1).alias("price_return"),
-            )
-            .sort("trade_seq")
-        )
-
-        return {
-            "merged_df": merged_df,
-            "trade_records": trade_records,
-            "annual_trading_days": 252,
-            "total_days": 10,
-            "periods_per_day": 1,
         }

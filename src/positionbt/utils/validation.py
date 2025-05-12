@@ -1,5 +1,6 @@
 """Data validation utilities"""
 
+from numbers import Number
 from typing import Literal, Union
 
 import pandas as pd
@@ -172,6 +173,6 @@ def validate_data_type(data) -> Union[float, pl.DataFrame]:
         ValidationError: If data type is invalid
 
     """
-    if isinstance(data, (float, pl.DataFrame)):
+    if isinstance(data, (Number, pl.DataFrame)):
         return data
     raise ValidationError("Data must be of type float or polars.DataFrame")
