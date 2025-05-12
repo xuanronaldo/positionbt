@@ -58,9 +58,6 @@ class DrawdownFigure(BaseFigure):
 # Register custom figure
 figure_registry.register(DrawdownFigure)
 
-# Print available figures
-print(figure_registry.available_figures)
-
 # Load close data
 close_df = load_close_data()
 

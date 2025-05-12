@@ -62,7 +62,7 @@ position_df = close_df.select(pl.col("time")).with_columns(pl.lit(1).alias("posi
 # Create backtester instance (using all indicators including the newly registered monthly return)
 backtester = PositionBacktester(
     close_df=close_df,
-    commission=0.001,  # 0.1% commission rate
+    commission_rate=0.001,  # 0.1% commission rate
     annual_trading_days=365,  # Use 365 trading days per year
     indicators=["monthly_return"],  # Use all registered indicators
 )

@@ -14,7 +14,7 @@ class FigureRegistry:
         self._registry: OrderedDict[str, type[BaseFigure]] = OrderedDict()
         self._load_built_in_figures()
 
-    def register(self, name: str, figure_cls: type[BaseFigure]) -> None:
+    def register(self, figure_cls: type[BaseFigure]) -> None:
         """Register a figure class
 
         Args:
@@ -27,7 +27,7 @@ class FigureRegistry:
         """
         if not issubclass(figure_cls, BaseFigure):
             raise ValueError("Figure class must be a subclass of BaseFigure")
-        self._registry[name] = figure_cls
+        self._registry[figure_cls.name] = figure_cls
 
     def get(self, name: str) -> type[BaseFigure]:
         """Get a figure class by name
@@ -69,7 +69,7 @@ class FigureRegistry:
             if class_name in members:
                 obj = members[class_name]
                 if inspect.isclass(obj) and issubclass(obj, BaseFigure) and obj != BaseFigure and hasattr(obj, "name"):
-                    self.register(class_name, obj)
+                    self.register(obj)
 
 
 # Global figure registry instance

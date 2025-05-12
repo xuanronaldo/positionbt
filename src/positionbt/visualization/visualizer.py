@@ -66,7 +66,7 @@ class BacktestVisualizer:
     def _generate_backtest_params_html(self, params: dict) -> str:
         """Generate HTML for backtest parameters"""
         params_formatted = {
-            "Commission Rate": f"{params['commission']:.3%}",
+            "Commission Rate": f"{params['commission_rate']:.3%}",
             "Annual Trading Days": f"{params['annual_trading_days']} days",
             "Indicators": ("All indicators" if params["indicators"] == "all" else ", ".join(params["indicators"])),
         }
