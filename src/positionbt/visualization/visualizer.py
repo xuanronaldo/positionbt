@@ -4,7 +4,6 @@ import time
 import webbrowser
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 import polars as pl
 from markupsafe import Markup
@@ -19,7 +18,7 @@ class BacktestVisualizer:
 
     def __init__(
         self,
-        figures: Optional[list[str]] = None,
+        figures: list[str] | None = None,
     ):
         """Initialize visualizer
 
@@ -121,7 +120,7 @@ class BacktestVisualizer:
 
         return metrics_html
 
-    def _generate_notes_html(self, notes: Optional[str] = None) -> str:
+    def _generate_notes_html(self, notes: str | None = None) -> str:
         """Generate HTML for notes section
 
         Returns:
@@ -146,7 +145,7 @@ class BacktestVisualizer:
         results: BacktestResult,
         params: dict,
         output_path: str,
-        notes: Optional[str] = None,
+        notes: str | None = None,
     ) -> None:
         """Generate HTML backtest report
 
@@ -203,7 +202,7 @@ class BacktestVisualizer:
         self,
         results: BacktestResult,
         params: dict,
-        notes: Optional[str] = None,
+        notes: str | None = None,
         delay: float = 0.5,
     ) -> None:
         """Display backtest results in web browser

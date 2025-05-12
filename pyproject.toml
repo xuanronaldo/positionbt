@@ -3,7 +3,7 @@
 line-length = 150
 
 # Target Python version
-target-version = "py39"
+target-version = "py311"
 
 # Exclude files and directories
 exclude = [

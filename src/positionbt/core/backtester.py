@@ -1,4 +1,3 @@
-from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -22,10 +21,10 @@ from positionbt.utils.validation import (
 class PositionBacktester:
     def __init__(
         self,
-        close_df: Union[pl.DataFrame, pd.DataFrame],
+        close_df: pl.DataFrame | pd.DataFrame,
         commission_rate: float = 0.0,
         annual_trading_days: int = 252,
-        indicators: Union[str, list[str]] = "all",
+        indicators: str | list[str] = "all",
     ) -> None:
         try:
             # Validate parameters
@@ -111,7 +110,7 @@ class PositionBacktester:
         """
         indicator_registry.register(indicator)
 
-    def run(self, position_df: Union[pl.DataFrame, pd.DataFrame], **kwargs) -> BacktestResult:
+    def run(self, position_df: pl.DataFrame | pd.DataFrame, **kwargs) -> BacktestResult:
         """Run backtest and return results
 
         Args:

@@ -1,7 +1,7 @@
 """Data validation utilities"""
 
 from numbers import Number
-from typing import Literal, Union
+from typing import Literal
 
 import pandas as pd
 import polars as pl
@@ -26,7 +26,7 @@ def validate_commission_rate(commission_rate: float) -> None:
         ValidationError: If commission_rate is not a number or not between 0 and 1
 
     """
-    if not isinstance(commission_rate, (int, float)):
+    if not isinstance(commission_rate, (int | float)):
         raise ValidationError("Commission rate must be a number")
     if commission_rate < 0 or commission_rate > 1:
         raise ValidationError("Commission rate must be between 0 and 1")
@@ -50,7 +50,7 @@ def validate_annual_trading_days(days: int) -> None:
         raise ValidationError("Annual trading days cannot exceed 365")
 
 
-def validate_indicators(indicators: Union[str, list[str]]) -> list[str]:
+def validate_indicators(indicators: str | list[str]) -> list[str]:
     """Validate indicator parameters and return sorted list of indicators including dependencies
 
     Args:
@@ -63,7 +63,7 @@ def validate_indicators(indicators: Union[str, list[str]]) -> list[str]:
         ValidationError: If indicators parameter is invalid
 
     """
-    if indicators != "all" and not isinstance(indicators, (list, tuple)):
+    if indicators != "all" and not isinstance(indicators, (list | tuple)):
         raise ValidationError("Indicators must be 'all' or a list of indicator names")
 
     sorted_indicators = indicator_registry.sorted_indicators
@@ -96,7 +96,7 @@ def validate_indicators(indicators: Union[str, list[str]]) -> list[str]:
 
 
 def validate_and_convert_input(
-    df: Union[pl.DataFrame, pd.DataFrame],
+    df: pl.DataFrame | pd.DataFrame,
     data_type: Literal["close", "position"],
 ) -> pl.DataFrame:
     """Validate and convert input data
@@ -160,7 +160,7 @@ def validate_time_alignment(close_df: pl.DataFrame, position_df: pl.DataFrame) -
         raise ValidationError("Close and position data must have identical timestamps")
 
 
-def validate_data_type(data) -> Union[float, pl.DataFrame]:
+def validate_data_type(data) -> float | pl.DataFrame:
     """Validate data type is either float or polars.DataFrame
 
     Args:
@@ -173,6 +173,6 @@ def validate_data_type(data) -> Union[float, pl.DataFrame]:
         ValidationError: If data type is invalid
 
     """
-    if isinstance(data, (Number, pl.DataFrame)):
+    if isinstance(data, (Number | pl.DataFrame)):
         return data
     raise ValidationError("Data must be of type float or polars.DataFrame")

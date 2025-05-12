@@ -188,13 +188,7 @@ def test_edge_cases():
         except Exception as e:
             assert isinstance(
                 e,
-                (
-                    ValueError,
-                    ZeroDivisionError,
-                    IndexError,
-                    KeyError,
-                    TypeError,
-                ),
+                (ValueError | ZeroDivisionError | IndexError | KeyError | TypeError),
             )
 
 
