@@ -7,3 +7,5 @@ pyarrow>=17.0.0
 plotly>=5.18.0
 
 numba>=0.60.0
+
+markupsafe==2.1.1
