@@ -74,8 +74,7 @@ def validate_indicators(indicators: Union[str, list[str]]) -> list[str]:
     invalid_indicators = set(indicators) - set(indicator_registry.available_indicators)
     if invalid_indicators:
         raise ValidationError(
-            f"Invalid indicator names: {list(invalid_indicators)}. "
-            f"Available indicators: {indicator_registry.available_indicators}"
+            f"Invalid indicator names: {list(invalid_indicators)}. " f"Available indicators: {indicator_registry.available_indicators}"
         )
 
     # Collect all required indicators (including dependencies)

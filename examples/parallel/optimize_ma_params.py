@@ -18,17 +18,10 @@ def prepare_ma_data(close_df: pl.DataFrame, min_window: int, max_window: int, st
     Returns:
         DataFrame with all calculated moving averages
     """
-    return close_df.with_columns(
-        [
-            pl.col("close").rolling_mean(window).alias(f"ma_{window}")
-            for window in range(min_window, max_window + 1, step)
-        ]
-    )
+    return close_df.with_columns([pl.col("close").rolling_mean(window).alias(f"ma_{window}") for window in range(min_window, max_window + 1, step)])
 
 
-def run_ma_strategy(
-    ma_data: pl.DataFrame, fast_window: int, slow_window: int, backtester: PositionBacktester
-) -> dict:
+def run_ma_strategy(ma_data: pl.DataFrame, fast_window: int, slow_window: int, backtester: PositionBacktester) -> dict:
     """Run a single moving average strategy and return results
 
     Args:
@@ -77,18 +70,14 @@ def main():
 
     # Generate all parameter combinations for testing
     params = [
-        (ma_data, fast, slow, backtester)
-        for fast in range(MIN_WINDOW, MAX_WINDOW + 1, STEP)
-        for slow in range(fast + STEP, MAX_WINDOW + 1, STEP)
+        (ma_data, fast, slow, backtester) for fast in range(MIN_WINDOW, MAX_WINDOW + 1, STEP) for slow in range(fast + STEP, MAX_WINDOW + 1, STEP)
     ]
 
     with mp.Pool(processes=mp.cpu_count()) as pool:
         results = pool.starmap(run_ma_strategy, params)
 
     # Convert results to DataFrame and sort by Sharpe ratio
-    [fast_window, slow_window] = (
-        pl.DataFrame(results).sort("sharpe_ratio", descending=True).item(0, "id").split("_")
-    )
+    [fast_window, slow_window] = pl.DataFrame(results).sort("sharpe_ratio", descending=True).item(0, "id").split("_")
 
     print(f"Fast window: {fast_window}, Slow window: {slow_window}")
 

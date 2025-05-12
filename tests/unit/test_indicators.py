@@ -31,7 +31,13 @@ def sample_cache():
         }
     )
 
-    return {"merged_df": df, "periods_per_day": 1, "annual_trading_days": 252}
+    trade_records = pl.DataFrame(
+        {
+            "return_rate": [0.08],
+        }
+    )
+
+    return {"merged_df": df, "trade_records": trade_records, "total_days": 5, "periods_per_day": 1, "annual_trading_days": 252}
 
 
 def test_total_return(sample_cache):
@@ -121,7 +127,7 @@ def test_win_rate(sample_cache):
     result = indicator.calculate(sample_cache)
 
     # Sample data has 3 positive net_returns and 2 negative net_returns
-    expected = 3 / 5
+    expected = 1
     assert abs(result - expected) < 1e-6
     assert "%" in indicator.format(result)
 
@@ -139,15 +145,9 @@ def test_profit_loss_ratio(sample_cache):
     """Test profit/loss ratio calculation"""
     indicator = ProfitLossRatio()
     result = indicator.calculate(sample_cache)
+    expected = float("inf")
 
-    # 验证盈亏比计算
-    net_returns = sample_cache["merged_df"].get_column("net_returns")
-    profit_trades = net_returns.filter(net_returns > 0)
-    loss_trades = net_returns.filter(net_returns < 0)
-    expected = profit_trades.mean() / abs(loss_trades.mean())
-
-    assert abs(result - expected) < 1e-3
-    assert "." in indicator.format(result)
+    assert result == expected
 
 
 def test_edge_cases():

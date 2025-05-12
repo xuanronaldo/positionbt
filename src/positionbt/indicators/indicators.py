@@ -403,7 +403,7 @@ class ProfitLossRatio(BaseIndicator):
 
             # Calculate average profit and average loss
             avg_profit = profit_trades.mean() if len(profit_trades) > 0 else 0
-            avg_loss = abs(loss_trades.mean()) if len(loss_trades) > 0 else float("inf")
+            avg_loss = abs(loss_trades.mean()) if len(loss_trades) > 0 else 0
 
             # Calculate profit-loss ratio
             if avg_loss == 0:  # Avoid division by zero

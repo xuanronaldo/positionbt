@@ -40,7 +40,7 @@ def test_full_backtest_workflow(large_sample_data):
     # Test complete backtesting workflow
     bt = PositionBacktester(
         large_sample_data["close_df"],
-        commission=0.001,
+        commission_rate=0.001,
         indicators=["sharpe_ratio", "max_drawdown"],
     )
 
@@ -65,10 +65,7 @@ def test_multiple_runs_consistency(large_sample_data):
     result2 = bt.run(large_sample_data["position_df"])
 
     # Verify results are consistent
-    assert (
-        result1.dataframes["merged_df"].get_column("equity_curve")
-        == result2.dataframes["merged_df"].get_column("equity_curve")
-    ).all()
+    assert (result1.dataframes["merged_df"].get_column("equity_curve") == result2.dataframes["merged_df"].get_column("equity_curve")).all()
 
 
 def test_edge_cases(large_sample_data):
@@ -97,7 +94,7 @@ def test_high_frequency_data(large_sample_data):
     hf_close_df = pl.DataFrame({"time": dates, "close": close_prices})
     hf_position_df = pl.DataFrame({"time": dates, "position": positions})
 
-    bt = PositionBacktester(hf_close_df, commission=0.0001)
+    bt = PositionBacktester(hf_close_df, commission_rate=0.0001)
     result = bt.run(hf_position_df)
 
     # Verify high frequency data processing

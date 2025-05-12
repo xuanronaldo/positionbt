@@ -25,10 +25,10 @@ def test_backtester_initialization(sample_data):
     assert bt.annual_trading_days == 252
 
 
-def test_backtester_invalid_commission():
+def test_backtester_invalid_commission_rate():
     # Test invalid commission rate
     with pytest.raises(ValueError):
-        PositionBacktester(pl.DataFrame(), commission=-0.1)
+        PositionBacktester(pl.DataFrame(), commission_rate=-0.1)
 
 
 def test_backtester_invalid_trading_days():
@@ -39,7 +39,7 @@ def test_backtester_invalid_trading_days():
 
 def test_calculate_equity_curve(sample_data):
     # Test equity curve calculation
-    bt = PositionBacktester(sample_data["close_df"], commission=0.001)
+    bt = PositionBacktester(sample_data["close_df"], commission_rate=0.001)
     result = bt.run(sample_data["position_df"])
 
     # Verify basic properties of equity curve
@@ -61,11 +61,11 @@ def test_params_property(sample_data):
     # Test parameters property
     bt = PositionBacktester(
         sample_data["close_df"],
-        commission=0.002,
+        commission_rate=0.002,
         annual_trading_days=250,
         indicators=["sharpe_ratio"],
     )
     params = bt.params
-    assert params["commission"] == 0.002
+    assert params["commission_rate"] == 0.002
     assert params["annual_trading_days"] == 250
     assert "sharpe_ratio" in params["indicators"]

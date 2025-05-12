@@ -10,11 +10,7 @@ backtester = PositionBacktester(close_df, commission_rate=0.001, annual_trading_
 
 def run_ma_strategy(fast_window: int, slow_window: int) -> dict:
     position_df = close_df.with_columns(
-        [
-            (pl.col("close").rolling_mean(fast_window) >= pl.col("close").rolling_mean(slow_window))
-            .cast(pl.Int8)
-            .alias("position")
-        ]
+        [(pl.col("close").rolling_mean(fast_window) >= pl.col("close").rolling_mean(slow_window)).cast(pl.Int8).alias("position")]
     ).select(["time", "position"])
 
     backtest_result = backtester.run(position_df)
