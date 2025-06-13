@@ -51,53 +51,52 @@ class PositionBacktester:
         ) -> tuple[np.ndarray, np.ndarray]:
             """
             Calculate equity curve and commission costs for a trading strategy.
+            This function is optimized with Numba JIT compilation for better performance.
 
             Args:
-                close_arr: Array of closing prices
-                position_arr: Array of target positions
-                return_arr: Array of price returns
-                position_change_arr: Array indicating position changes
-                commission_rate: Commission rate for trading
+                close_arr: Array of closing prices for each period
+                position_arr: Array of target positions (-1 to 1, where -1 is fully short, 1 is fully long)
+                return_arr: Array of price returns for each period
+                position_change_arr: Array indicating when position changes occur (1 for change, 0 for no change)
+                commission_rate: Commission rate for trading (e.g., 0.001 for 0.1%)
 
             Returns:
-                Tuple of (equity_curve, commission_cost) arrays
+                Tuple containing:
+                - equity_curve: Array of equity values over time
+                - commission_cost: Array of commission costs for each period
             """
             n = len(close_arr)
 
-            # Initialize arrays
-            equity_curve = np.ones(n, dtype=np.float32)  # Starting with 1 as base equity
-            position_value = np.zeros(n, dtype=np.float32)  # Current position value
-            commission_cost = np.zeros(n, dtype=np.float32)  # Trading commission costs
+            # Initialize arrays with appropriate data types for memory efficiency
+            equity_curve = np.ones(n, dtype=np.float32)  # Start with 1 as base equity
+            position_value = np.zeros(n, dtype=np.float32)  # Track current position value
+            commission_cost = np.zeros(n, dtype=np.float32)  # Track trading costs
 
-            # Initialize first position
+            # Set initial position and calculate first period values
             current_position = position_arr[0]
-
-            # Set initial position value and commission if there's a position
             if current_position != 0:
                 position_value[0] = current_position * equity_curve[0]
                 commission_cost[0] = abs(current_position) * commission_rate * equity_curve[0]
 
-            # Main calculation loop
+            # Main calculation loop for each period
             for i in range(1, n):
-                # Calculate previous period's net position value (after commission)
-                prev_net_position = position_value[i - 1] - commission_cost[i - 1]
+                # Update position value based on market returns
+                position_value[i] = position_value[i - 1] * (1 + return_arr[i])
 
-                # Update position value based on returns
-                position_value[i] = prev_net_position * (1 + return_arr[i])
+                # Update equity curve considering previous commission costs and position value changes
+                equity_curve[i] = equity_curve[i - 1] - commission_cost[i - 1] + (position_value[i] - position_value[i - 1])
 
-                # Update equity curve
-                equity_curve[i] = equity_curve[i - 1] + (position_value[i] - prev_net_position)
-
-                # Handle position changes and commission
+                # Handle position changes and associated costs
                 if position_change_arr[i] != 0:
-                    # Calculate commission for position change
+                    # Calculate commission for the position change
                     commission_cost[i] = abs(position_arr[i] - current_position) * commission_rate * equity_curve[i]
                     current_position = position_arr[i]  # Update to new target position
+                    position_value[i] = current_position * equity_curve[i]
                 else:
                     # Update current position based on position value and equity
                     current_position = position_value[i] / equity_curve[i]
 
-                # Handle account liquidation
+                # Handle account liquidation if equity falls to zero or below
                 if equity_curve[i] <= 0:
                     equity_curve[i:] = 0  # Set remaining equity to 0
                     break
