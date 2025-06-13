@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name="positionbt",
-    version="v1.3.0",
+    version="v1.3.1",
     author="Xuan Ronaldo",
     author_email="xuanronaldo@outlook.com",
     description="PositionBT is a simple, fast, and customizable backtesting framework "
