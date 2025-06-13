@@ -43,62 +43,79 @@ class PositionBacktester:
     def _calculate_equity_curve(self, df: pl.DataFrame) -> pl.DataFrame:
         @njit(cache=True)
         def calculate_equity(
-            returns_factor_arr: np.ndarray,
-            position_changes_arr: np.ndarray,
+            close_arr: np.ndarray,
+            position_arr: np.ndarray,
+            return_arr: np.ndarray,
+            position_change_arr: np.ndarray,
             commission_rate: float,
         ) -> tuple[np.ndarray, np.ndarray]:
-            """Calculate equity curve and commission costs
+            """
+            Calculate equity curve and commission costs for a trading strategy.
 
             Args:
-                returns_factor_arr: Array of returns factors (1 + returns)
-                position_changes_arr: Array of position changes
-                commission_rate: Commission rate
+                close_arr: Array of closing prices
+                position_arr: Array of target positions
+                return_arr: Array of price returns
+                position_change_arr: Array indicating position changes
+                commission_rate: Commission rate for trading
 
             Returns:
-                tuple: (equity_curve, commission_cost)
+                Tuple of (equity_curve, commission_cost) arrays
             """
-            n = len(returns_factor_arr)
-            equity_curve = np.ones(n, dtype=np.float32)
-            commission_cost = np.zeros(n, dtype=np.float32)
+            n = len(close_arr)
 
-            commission_cost[0] = position_changes_arr[0] * commission_rate * equity_curve[0]
+            # Initialize arrays
+            equity_curve = np.ones(n, dtype=np.float32)  # Starting with 1 as base equity
+            position_value = np.zeros(n, dtype=np.float32)  # Current position value
+            commission_cost = np.zeros(n, dtype=np.float32)  # Trading commission costs
 
+            # Initialize first position
+            current_position = position_arr[0]
+
+            # Set initial position value and commission if there's a position
+            if current_position != 0:
+                position_value[0] = current_position * equity_curve[0]
+                commission_cost[0] = abs(current_position) * commission_rate * equity_curve[0]
+
+            # Main calculation loop
             for i in range(1, n):
-                equity_curve[i] = (equity_curve[i - 1] - commission_cost[i - 1]) * returns_factor_arr[i - 1]
+                # Calculate previous period's net position value (after commission)
+                prev_net_position = position_value[i - 1] - commission_cost[i - 1]
 
-                commission = position_changes_arr[i] * commission_rate * equity_curve[i]
-                commission_cost[i] = commission
+                # Update position value based on returns
+                position_value[i] = prev_net_position * (1 + return_arr[i])
+
+                # Update equity curve
+                equity_curve[i] = equity_curve[i - 1] + (position_value[i] - prev_net_position)
+
+                # Handle position changes and commission
+                if position_change_arr[i] != 0:
+                    # Calculate commission for position change
+                    commission_cost[i] = abs(position_arr[i] - current_position) * commission_rate * equity_curve[i]
+                    current_position = position_arr[i]  # Update to new target position
+                else:
+                    # Update current position based on position value and equity
+                    current_position = position_value[i] / equity_curve[i]
+
+                # Handle account liquidation
+                if equity_curve[i] <= 0:
+                    equity_curve[i:] = 0  # Set remaining equity to 0
+                    break
 
             return equity_curve, commission_cost
 
-        # Calculate returns once and reuse
-        returns = pl.col("close").pct_change().fill_null(0)
+        close_arr = df["close"].to_numpy().astype(np.float32)
+        position_arr = df["position"].to_numpy().astype(np.float32)
+        return_arr = df["close"].pct_change().to_numpy().astype(np.float32)
+        position_change_arr = df["position"].diff().abs().fill_null(pl.col("position").first()).to_numpy().astype(np.float32)
 
-        # Optimize polars operations by combining multiple column operations
-        base_df = df.with_columns(
-            position_changes=pl.col("position").diff().abs().fill_null(pl.col("position").first()),
-            net_returns=(returns * pl.col("position")),
-            returns_factor=(returns * pl.col("position") + 1),
+        equity_curve, commission_cost = calculate_equity(close_arr, position_arr, return_arr, position_change_arr, self.commission_rate)
+
+        return df.select("time").with_columns(
+            equity_curve=pl.lit(equity_curve),
+            commission_cost=pl.lit(commission_cost),
+            net_returns=pl.lit(equity_curve).pct_change().fill_null(0),
         )
-
-        # Convert to float32 numpy arrays
-        if self.commission_rate != 0:
-            returns_factor_arr = base_df["returns_factor"].to_numpy().astype(np.float32)
-            position_changes_arr = base_df["position_changes"].to_numpy().astype(np.float32)
-            equity_curve, commission_cost = calculate_equity(returns_factor_arr, position_changes_arr, self.commission_rate)
-
-            return base_df.select("time", "net_returns").with_columns(
-                equity_curve=pl.lit(equity_curve),
-                commission_cost=pl.lit(commission_cost),
-            )
-        else:
-            equity_curve = base_df.select("returns_factor").to_series().cum_prod()
-            commission_cost = np.zeros(len(equity_curve), dtype=np.float32)
-
-            return base_df.select("time", "net_returns").with_columns(
-                equity_curve=equity_curve,
-                commission_cost=pl.lit(commission_cost),
-            )
 
     def add_indicator(self, indicator: BaseIndicator) -> None:
         """Add custom indicator
