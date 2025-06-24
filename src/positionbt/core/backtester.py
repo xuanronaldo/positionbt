@@ -81,7 +81,7 @@ class PositionBacktester:
             # Main calculation loop for each period
             for i in range(1, n):
                 # Update position value based on market returns
-                position_value[i] = position_value[i - 1] * (1 + return_arr[i])
+                position_value[i] = position_value[i - 1] * (1 + return_arr[i - 1])
 
                 # Update equity curve considering previous commission costs and position value changes
                 equity_curve[i] = equity_curve[i - 1] - commission_cost[i - 1] + (position_value[i] - position_value[i - 1])
@@ -105,7 +105,7 @@ class PositionBacktester:
 
         close_arr = df["close"].to_numpy().astype(np.float32)
         position_arr = df["position"].to_numpy().astype(np.float32)
-        return_arr = df["close"].pct_change().to_numpy().astype(np.float32)
+        return_arr = df["close"].pct_change().fill_null(0).to_numpy().astype(np.float32)
         position_change_arr = df["position"].diff().abs().fill_null(pl.col("position").first()).to_numpy().astype(np.float32)
 
         equity_curve, commission_cost = calculate_equity(close_arr, position_arr, return_arr, position_change_arr, self.commission_rate)
